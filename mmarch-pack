@@ -17,4 +17,3 @@ args = parser.parse_args()
 archive = Archive(options = args)
 for dir in args.directories:
 	archive.add_dir(dir)
-print(archive.files)
