@@ -10,11 +10,10 @@ parser.add_argument('--page-size', '-S', default = 4096, type = int, help = 'Pag
 parser.add_argument('--big-endian', '-B', action = 'store_true', dest = 'big_endian', default = True, help = 'Store archive data in big endian format (default)')
 parser.add_argument('--little-endian', '-L', action = 'store_false', dest = 'big_endian', help = 'Store archive data in little endian format')
 parser.add_argument('--follow-links', '-f', action = 'store_true', help = 'Follow links')
+parser.add_argument('archive', help = 'destination archive file')
 parser.add_argument('directories', help = 'directories to pack', nargs = '+')
 args = parser.parse_args()
 
 archive = Archive(args = args)
 for dir in args.directories:
 	archive.add_dir(dir)
-
-print(archive.files)
