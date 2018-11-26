@@ -5,6 +5,9 @@ import mmarch.format as format
 
 logger = logging.getLogger('archive')
 
+def align(size, alignment):
+    return (size + alignment - 1) // alignment * alignment
+
 class HashMap(object):
     def __init__(self, func):
         self.__data = {}
@@ -47,6 +50,7 @@ class Archive (object):
         self.files = []
         self.dirs = {}
         self.globals = HashMap(hashfunc.get(hashfunc.FNV1))
+        self.format = format.Format(options)
 
     def add_dir(self, src_dir):
         for dirpath, dirnames, filenames in os.walk(src_dir, followlinks = self.options.follow_links, topdown = False):
@@ -57,12 +61,12 @@ class Archive (object):
             try:
                 dir = self.dirs.setdefault(rel_dirpath, Directory(dirpath))
             except Exception as ex:
-                logger.error("stat failed: %s", ex)
+                logger.error("adding directory failed: %s", ex)
                 continue
 
             for filename in filenames:
-                rel_path = os.path.join(rel_dirpath, filename)
-                abs_path = os.path.join(src_dir, dirpath, filename)
+                rel_path = os.path.normpath(os.path.join(rel_dirpath, filename))
+                abs_path = os.path.normpath(os.path.join(src_dir, dirpath, filename))
                 logger.debug('filename: %s, local name: %s', abs_path, rel_path)
 
                 index = len(self.files) + 1
@@ -71,16 +75,10 @@ class Archive (object):
                     self.files.append(file)
                     dir.add(file)
                     logger.debug("added file %s at offset %s", file, hex(self.offset))
-                    self.offset = (self.offset + file.size + self.page_size - 1) // self.page_size * self.page_size
+                    self.offset = align(self.offset + file.size, self.page_size)
                 except Exception as ex:
-                    logger.error("stat failed: %s", ex)
+                    logger.error("adding file failed: %s", ex)
                     continue
 
     def write(self, stream):
-        rec = format.Header(self.options)
-        rec.write(stream)
-        fs = format.FileStorage(self.options)
-        fs.write(stream)
-        rec = format.DirectoryStructure(fs, self.options)
-        rec.write(stream)
-        fs.writeContent(stream)
+        self.format.write_header(stream, 0x112233)

@@ -1,21 +1,17 @@
+from struct import Struct
+
 class Format():
+    MAGIC = 0x4d415243
+    VERSION = 1
+
     def __init__(self, options):
         self.BE = options.big_endian
-        print(options)
+        prefix = '>' if self.BE else '<'
+        self._header = Struct(prefix + 'III') #magic, version, total index size
 
     @property
-    def _prefix(self):
-        return '>' if self.BE else '<'
+    def header_size(self):
+        return self._header.size
 
-    @property
-    def header(self):
-        return self._prefix + 'I' #magic
-
-class Record():
-    def __init__(self, options):
-        self.options = options
-        self.format = Format(options)
-
-class Header(object):
-    def __init__(self, options):
-        super()
+    def write_header(self, stream, size):
+        stream.write(self._header.pack(Format.MAGIC, Format.VERSION, size))
