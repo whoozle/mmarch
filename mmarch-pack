@@ -18,3 +18,6 @@ logging.basicConfig(level = logging.DEBUG if args.verbose else logging.INFO)
 archive = Archive(options = args)
 for dir in args.directories:
 	archive.add_dir(dir)
+
+with open(args.archive, 'wb') as f:
+	archive.write(f)
