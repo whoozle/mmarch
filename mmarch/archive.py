@@ -23,20 +23,27 @@ class Directory (object):
 		self.files.add(file)
 
 class File(object):
-	__slots__ = ('abspath', 'relpath', 'name', 'index', 'stat')
-	def __init__(self, abspath, relpath, name, index):
+	__slots__ = ('abspath', 'relpath', 'name', 'index', 'offset', 'stat')
+	def __init__(self, abspath, relpath, name, index, offset):
 		self.abspath = abspath
 		self.relpath = relpath
 		self.name = name
 		self.index = index
+		self.offset = offset
 		self.stat = os.stat(abspath)
 
+	@property
+	def size(self):
+		return self.stat.st_size
+
 	def __repr__(self):
-		return "File(%s, %d)" %(self.relpath, self.index)
+		return "File(%s, size: %d, id: %d)" %(self.relpath, self.size, self.index)
 
 class Archive (object):
 	def __init__(self, options):
 		self.options = options
+		self.page_size = options.page_size
+		self.offset = 0
 		self.files = []
 		self.dirs = {}
 		self.globals = HashMap(hashfunc.get(hashfunc.FNV1))
@@ -55,20 +62,25 @@ class Archive (object):
 
 			for filename in filenames:
 				rel_path = os.path.join(rel_dirpath, filename)
-				logger.debug('filename: %s', rel_path)
+				abs_path = os.path.join(src_dir, dirpath, filename)
+				logger.debug('filename: %s, local name: %s', abs_path, rel_path)
 
 				index = len(self.files) + 1
 				try:
-					file = File(os.path.join(src_dir, dirpath, filename), rel_path, filename, index)
+					file = File(abs_path, rel_path, filename, index, self.offset)
 					self.files.append(file)
 					dir.add(file)
+					logger.debug("added file %s at offset %s", file, hex(self.offset))
+					self.offset = (self.offset + file.size + self.page_size - 1) // self.page_size * self.page_size
 				except Exception as ex:
 					logger.error("stat failed: %s", ex)
+					continue
 
 	def write(self, stream):
 		rec = format.Header(self.options)
 		rec.write(stream)
-		rec = format.FileStorage(self.options)
+		fs = format.FileStorage(self.options)
+		fs.write(stream)
+		rec = format.DirectoryStructure(fs, self.options)
 		rec.write(stream)
-		rec = format.DirectoryStructure(self.options)
-		rec.write(stream)
+		fs.writeContent(stream)
