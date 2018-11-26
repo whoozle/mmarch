@@ -66,7 +66,7 @@ class Archive (object):
 
             for filename in filenames:
                 rel_path = os.path.normpath(os.path.join(rel_dirpath, filename))
-                abs_path = os.path.normpath(os.path.join(src_dir, dirpath, filename))
+                abs_path = os.path.normpath(os.path.join(dirpath, filename))
                 logger.debug('filename: %s, local name: %s', abs_path, rel_path)
 
                 index = len(self.files) + 1
