@@ -12,12 +12,12 @@ class Directory (object):
 		self.files.add(file)
 
 class Archive (object):
-	def __init__(self, args):
-		self.args = args
+	def __init__(self, options):
+		self.options = options
 		self.files = {}
 
 	def add_dir(self, dir):
-		for dirpath, dirnames, filenames in os.walk(dir, followlinks = self.args.follow_links):
+		for dirpath, dirnames, filenames in os.walk(dir, followlinks = self.options.follow_links, topdown = False):
 			dirpath = os.path.relpath(dirpath, dir)
 			if dirpath == '.':
 				dirpath = ''

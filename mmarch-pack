@@ -14,6 +14,7 @@ parser.add_argument('archive', help = 'destination archive file')
 parser.add_argument('directories', help = 'directories to pack', nargs = '+')
 args = parser.parse_args()
 
-archive = Archive(args = args)
+archive = Archive(options = args)
 for dir in args.directories:
 	archive.add_dir(dir)
+print(archive.files)
