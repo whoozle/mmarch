@@ -13,7 +13,7 @@ parser.add_argument('--verbose', '-v', action = 'store_true', help = 'Verbose')
 parser.add_argument('archive', help = 'destination archive file')
 parser.add_argument('directories', help = 'directories to pack', nargs = '+')
 args = parser.parse_args()
-logging.basicConfig(level = logging.INFO if args.verbose else logging.DEBUG)
+logging.basicConfig(level = logging.DEBUG if args.verbose else logging.INFO)
 
 archive = Archive(options = args)
 for dir in args.directories:
