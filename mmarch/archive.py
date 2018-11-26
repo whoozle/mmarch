@@ -81,4 +81,4 @@ class Archive (object):
                     continue
 
     def write(self, stream):
-        self.format.write_header(stream, 0x112233)
+        self.format.write_header(stream, self.page_size, 0x112233)
