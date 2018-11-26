@@ -1,7 +1,7 @@
 from struct import Struct
 
 class Format():
-    MAGIC = 0x4d415243
+    MAGIC = 0x4d415243 #MARC
     VERSION = 1
 
     def __init__(self, options):
