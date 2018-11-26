@@ -68,5 +68,7 @@ class Archive (object):
 	def write(self, stream):
 		rec = format.Header(self.options)
 		rec.write(stream)
+		rec = format.FileStorage(self.options)
+		rec.write(stream)
 		rec = format.DirectoryStructure(self.options)
 		rec.write(stream)
