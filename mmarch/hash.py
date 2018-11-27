@@ -143,10 +143,9 @@ class HashMap(object):
 
         n = HashMap.PRIMES[self.__step]
         self.__step += 1
-        logger.debug('increasing bucket size from %d to %d', len(self.__buckets), n)
+        logger.debug('increasing buckets number from %d to %d', len(self.__buckets), n)
 
         buckets, self.__buckets = self.__buckets, [[] for _ in range(n)]
-        logger.debug("%s NEW BUCKS %s", buckets, self.__buckets)
         for bucket in buckets:
             for item in bucket:
                 self.__add(item)
