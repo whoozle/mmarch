@@ -30,7 +30,7 @@ class File(object):
         self.abspath = abspath
         self.relpath = relpath
         self.name = name
-        self.index = 0
+        self.index = None
         self.offset = offset
         self.stat = os.stat(abspath)
 
@@ -39,7 +39,7 @@ class File(object):
         return self.stat.st_size
 
     def __repr__(self):
-        return "File(%s, size: %d, id: %d)" %(self.relpath, self.size, self.index)
+        return "File(%s, size: %d%s)" %(self.relpath, self.size, ", %d" %self.index if self.index else "")
 
 class Archive (object):
     def __init__(self, options):
