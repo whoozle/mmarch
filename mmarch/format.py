@@ -74,9 +74,11 @@ class Format():
         for item in data:
             offsets.append(len(r) + base)
             r += writer(item)
+        offsets.append(len(r) + base) #end
 
         table = bytearray()
         for offset in offsets:
             table += self.get_table_entry(offset)
 
-        return table + r
+        stream.write(table)
+        stream.write(r)
