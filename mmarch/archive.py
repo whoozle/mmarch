@@ -46,6 +46,7 @@ class Archive (object):
         self._total = 0
 
     def add_dir(self, src_dir):
+        logger.info("processing directory %s", src_dir)
         for dirpath, dirnames, filenames in os.walk(src_dir, followlinks = self.options.follow_links, topdown = False):
             rel_dirpath = os.path.relpath(dirpath, src_dir)
             if rel_dirpath == '.':
@@ -74,6 +75,7 @@ class Archive (object):
                 except Exception as ex:
                     logger.error("adding file failed: %s", ex)
                     continue
+        logger.info("finished with directory %s", src_dir)
 
     def _all(self):
         for dir in self.dirs.keys():
@@ -82,6 +84,7 @@ class Archive (object):
             yield file.relpath
 
     def write(self, stream):
+        logger.info("building string pool and hash map...")
         filenames = [entry for entry in self._all()]
         string_pool, string_loc = create_pool(filenames)
 
@@ -96,15 +99,20 @@ class Archive (object):
             index += 1
         del index
 
-        total = self._total
-        string_pool_offset = self.format.header_size + self.format.metadata_size * total + self.format.metadata_header_size
-        hash_data_offset = string_pool_offset + len(string_pool)
         hash_func_id, map_buckets = self.global_names.serialize()
-        print(map_buckets)
-        file_data_offset = hash_data_offset + total * 4 #fixme
 
-        self.format.write_header(stream, self.page_size, total, len(self.dirs))
-        logger.debug('writing %u metadata records', total)
+        total = self._total
+        dirs_count = len(self.dirs)
+        logger.info("writing %d files in %d directories:", total, dirs_count)
+        string_pool_offset = self.format.header_size + self.format.metadata_size * total + self.format.metadata_header_size
+        map_data_offset = string_pool_offset + len(string_pool)
+        map_size = (total + len(map_buckets) + 1) # all file ids + bucket table + 1 extra bucket end entry
+        children_list_offset = map_data_offset + map_size
+        children_list_size = (dirs_count + 1) * 4
+        file_data_offset = children_list_offset + children_list_size
+        file_data_offset_aligned = align(file_data_offset, self.page_size)
+
+        self.format.write_header(stream, self.page_size, total, dirs_count)
         self.format.write_metadata_header(stream, total)
         for dir in self.dirs.keys():
             name = dir.encode('utf8')
@@ -113,3 +121,13 @@ class Archive (object):
             name = file.relpath.encode('utf8')
             self.format.write_metadata(stream, file_data_offset + file.offset, file.size, string_pool_offset + string_loc[name], len(name))
         stream.write(string_pool)
+
+        for file in self.files:
+            logger.debug("writing %s...", file.relpath)
+            with open(file.abspath, 'rb') as f:
+                BUFSIZE = 1024 * 1024
+                while True:
+                    buf = f.read(BUFSIZE)
+                    stream.write(buf)
+                    if len(buf) < BUFSIZE:
+                        break
