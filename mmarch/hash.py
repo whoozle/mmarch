@@ -7,7 +7,7 @@ MASK32 = (1 << 32) - 1
 FNV1        = 0
 FNV1A       = 1
 PYTHON      = 2
-XX          = 3
+# XX          = 3
 
 DEFAULT     = FNV1A
 
@@ -99,7 +99,7 @@ def get(index):
         FNV1: fnv1,
         FNV1A: fnv1a,
         PYTHON: python,
-        XX: xxhash
+        # XX: xxhash
     }
     return _func[index]
 
