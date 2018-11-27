@@ -10,7 +10,7 @@ class Format():
     def __init__(self, options):
         self.BE = options.big_endian
         prefix = '>' if self.BE else '<'
-        self._header = Struct(prefix + 'IIII') #magic, version, page_size, total index size
+        self._header = Struct(prefix + 'IIIIQ') #magic, version, page_size, total index size, total file size
         self._metadata_header = Struct(prefix + 'III') #field count(version), record count, dir count (first dir_count descriptors are directories)
         self._metadata = Struct(prefix + 'QIII') #offset, size, name offset, name size
         self._map_header = Struct(prefix + 'II') #hash function id, bucket count
