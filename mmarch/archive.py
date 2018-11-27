@@ -9,13 +9,20 @@ logger = logging.getLogger('archive')
 def align(size, alignment):
     return (size + alignment - 1) // alignment * alignment
 
+def pad(size, alignment):
+    n = align(size, alignment) - size
+    return bytearray([0]) * n
+
 class Directory (object):
     def __init__(self, name):
         self.name = name
-        self.files = set()
+        self.files = []
 
     def add(self, file):
-        self.files.add(file)
+        self.files.append(file)
+
+    def __repr__(self):
+        return "%s" %self.files
 
 class File(object):
     __slots__ = ('abspath', 'relpath', 'name', 'index', 'offset', 'stat')
@@ -103,24 +110,47 @@ class Archive (object):
 
         total = self._total
         dirs_count = len(self.dirs)
-        logger.info("writing %d files in %d directories:", total, dirs_count)
-        string_pool_offset = self.format.header_size + self.format.metadata_size * total + self.format.metadata_header_size
+        format = self.format
+        logger.info("writing %d file%s in %d director%s:", total, "s" if total > 1 else "", dirs_count, "ies" if dirs_count > 1 else "y")
+        string_pool_offset = format.header_size + format.metadata_size * total + format.metadata_header_size
         map_data_offset = string_pool_offset + len(string_pool)
-        map_size = (total + len(map_buckets) + 1) # all file ids + bucket table + 1 extra bucket end entry
-        children_list_offset = map_data_offset + map_size
-        children_list_size = (dirs_count + 1) * 4
-        file_data_offset = children_list_offset + children_list_size
+        map_size = format.map_header_size + format.map_entry_size * total + 4 * (len(map_buckets) + 1) # header all file ids + bucket table + 1 extra bucket end entry
+        readdir_offset = map_data_offset + map_size
+        readdir_size = (dirs_count + 1) * 4
+        file_data_offset = readdir_offset + readdir_size
         file_data_offset_aligned = align(file_data_offset, self.page_size)
 
-        self.format.write_header(stream, self.page_size, total, dirs_count)
-        self.format.write_metadata_header(stream, total)
+        format.write_header(stream, self.page_size, total, dirs_count)
+        format.write_metadata_header(stream, total)
         for dir in self.dirs.keys():
             name = dir.encode('utf8')
-            self.format.write_metadata(stream, 0, 0, string_pool_offset + string_loc[name], len(name))
+            format.write_metadata(stream, 0, 0, string_pool_offset + string_loc[name], len(name))
         for file in self.files:
             name = file.relpath.encode('utf8')
-            self.format.write_metadata(stream, file_data_offset + file.offset, file.size, string_pool_offset + string_loc[name], len(name))
+            format.write_metadata(stream, file_data_offset + file.offset, file.size, string_pool_offset + string_loc[name], len(name))
         stream.write(string_pool)
+
+        format.write_map_header(stream, hash_func_id, len(map_buckets))
+
+        def write_map_entry(entries):
+            r = bytearray()
+            for entry in entries:
+                name, id = entry
+                r += format.get_map_entry(string_loc[name], len(name), id)
+            return r
+
+        format.write_indexed_table(stream, map_buckets, write_map_entry, map_data_offset + format.map_header_size)
+
+        def write_readdir_entry(entry):
+            name, dir = entry
+            r = bytearray()
+            for file in dir.files:
+                r += format.get_readdir_entry(file.index + dirs_count)
+            return r
+
+        format.write_indexed_table(stream, self.dirs.items(), write_readdir_entry, readdir_offset)
+
+        stream.write(pad(file_data_offset, self.page_size))
 
         for file in self.files:
             logger.debug("writing %s...", file.relpath)
@@ -131,3 +161,4 @@ class Archive (object):
                     stream.write(buf)
                     if len(buf) < BUFSIZE:
                         break
+            stream.write(pad(file.size, self.page_size))

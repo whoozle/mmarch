@@ -12,8 +12,11 @@ class Format():
         prefix = '>' if self.BE else '<'
         self._header = Struct(prefix + 'IIIII') #magic, version, page_size, total index size, dir count (first dir_count descriptors are directories)
         self._metadata_header = Struct(prefix + 'II') #record count, field count
-        self._metadata = Struct(prefix + 'QIII') #type, offset, size, name offset, name size
+        self._metadata = Struct(prefix + 'QIII') #offset, size, name offset, name size
         self._map_header = Struct(prefix + 'II') #hash function id, bucket count
+        self._map_entry = Struct(prefix + 'III') #name offset, name size, id
+        self._table_entry = Struct(prefix + 'I') #offset to table
+        self._readdir_entry = Struct(prefix + 'I') #file id
 
     @property
     def header_size(self):
@@ -42,3 +45,38 @@ class Format():
 
     def write_map_header(self, stream, *args):
         stream.write(self._map_header.pack(*args))
+
+    @property
+    def map_entry_size(self):
+        return self._map_entry.size
+
+    def get_map_entry(self, *args):
+        return self._map_entry.pack(*args)
+
+    @property
+    def readdir_entry_size(self):
+        return self._readdir_entry.size
+
+    def get_readdir_entry(self, *args):
+        return self._readdir_entry.pack(*args)
+
+    @property
+    def table_entry_size(self):
+        return self._table_entry.size
+
+    def get_table_entry(self, *args):
+        return self._table_entry.pack(*args)
+
+    def write_indexed_table(self, stream, data, writer, base):
+        r = bytearray()
+        offsets = []
+        base += (len(data) + 1) * self.table_entry_size
+        for item in data:
+            offsets.append(len(r) + base)
+            r += writer(item)
+
+        table = bytearray()
+        for offset in offsets:
+            table += self.get_table_entry(offset)
+
+        return table + r
