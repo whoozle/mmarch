@@ -10,8 +10,8 @@ class Format():
     def __init__(self, options):
         self.BE = options.big_endian
         prefix = '>' if self.BE else '<'
-        self._header = Struct(prefix + 'IIIII') #magic, version, page_size, total index size, dir count (first dir_count descriptors are directories)
-        self._metadata_header = Struct(prefix + 'II') #record count, field count
+        self._header = Struct(prefix + 'IIII') #magic, version, page_size, total index size
+        self._metadata_header = Struct(prefix + 'III') #field count(version), record count, dir count (first dir_count descriptors are directories)
         self._metadata = Struct(prefix + 'QIII') #offset, size, name offset, name size
         self._map_header = Struct(prefix + 'II') #hash function id, bucket count
         self._map_entry = Struct(prefix + 'III') #name offset, name size, id
@@ -29,8 +29,8 @@ class Format():
     def metadata_header_size(self):
         return self._metadata_header.size
 
-    def write_metadata_header(self, stream, total):
-        stream.write(self._metadata_header.pack(total, self.metadata_size // 4))
+    def write_metadata_header(self, stream, *args):
+        stream.write(self._metadata_header.pack(self.metadata_size // 4, *args))
 
     @property
     def metadata_size(self):

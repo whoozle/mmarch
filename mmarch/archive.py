@@ -131,8 +131,8 @@ class Archive (object):
         file_data_offset_aligned = align(file_data_offset, self.page_size)
         logger.debug("file data offset = 0x%08x", file_data_offset_aligned)
 
-        format.write_header(stream, self.page_size, total, dirs_count)
-        format.write_metadata_header(stream, total)
+        format.write_header(stream, self.page_size, file_data_offset_aligned)
+        format.write_metadata_header(stream, total, dirs_count)
         for dir in self.dirs.keys():
             name = dir.encode('utf8')
             format.write_metadata(stream, 0, 0, string_pool_offset + string_loc[name], len(name))
