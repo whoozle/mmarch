@@ -8,8 +8,9 @@ FNV1        = 0
 FNV1A       = 1
 PYTHON      = 2
 # XX          = 3
+R5          = 3
 
-DEFAULT     = FNV1A
+DEFAULT     = R5
 
 def _add32(x, y):
     return (x + y) & MASK32
@@ -35,6 +36,13 @@ def fnv1a(text):
         value ^= c
         value *= FNV_32_PRIME
         value &= MASK32
+    return value
+
+def r5(text):
+    value = 0
+    for c in text:
+        value = (value + (c << 4) + (c >> 4)) & MASK32
+        value = _mul32(value, 11)
     return value
 
 def python(text):
@@ -99,6 +107,7 @@ def get(index):
         FNV1: fnv1,
         FNV1A: fnv1a,
         PYTHON: python,
+        R5: r5
         # XX: xxhash
     }
     return _func[index]
@@ -116,7 +125,6 @@ class HashMap(object):
     ]
 
     def __init__(self, func = DEFAULT, load_factor = 1.0):
-        self.__data = {}
         self.func = func
         self.__func = get(func)
         self.__buckets = []
@@ -156,6 +164,9 @@ class HashMap(object):
         self.__rehash()
         self.__add((name, value))
         self.__size += 1
+
+    def serialize(self):
+        return (self.func, self.__buckets)
 
     def __len__(self):
         return self.__size

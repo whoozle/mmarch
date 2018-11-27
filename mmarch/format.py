@@ -13,6 +13,7 @@ class Format():
         self._header = Struct(prefix + 'IIIII') #magic, version, page_size, total index size, dir count (first dir_count descriptors are directories)
         self._metadata_header = Struct(prefix + 'II') #record count, field count
         self._metadata = Struct(prefix + 'QIII') #type, offset, size, name offset, name size
+        self._map_header = Struct(prefix + 'II') #hash function id, bucket count
 
     @property
     def header_size(self):
@@ -34,3 +35,10 @@ class Format():
 
     def write_metadata(self, stream, *args):
         stream.write(self._metadata.pack(*args))
+
+    @property
+    def map_header_size(self):
+        return self._map_header.size
+
+    def write_map_header(self, stream, *args):
+        stream.write(self._map_header.pack(*args))
