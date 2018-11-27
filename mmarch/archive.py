@@ -26,11 +26,11 @@ class Directory (object):
 
 class File(object):
     __slots__ = ('abspath', 'relpath', 'name', 'index', 'offset', 'stat')
-    def __init__(self, abspath, relpath, name, index, offset):
+    def __init__(self, abspath, relpath, name, offset):
         self.abspath = abspath
         self.relpath = relpath
         self.name = name
-        self.index = index
+        self.index = None
         self.offset = offset
         self.stat = os.stat(abspath)
 
@@ -71,9 +71,8 @@ class Archive (object):
                 abs_path = os.path.normpath(os.path.join(dirpath, filename))
                 logger.debug('filename: %s, local name: %s', abs_path, rel_path)
 
-                index = len(self.files) + 1
                 try:
-                    file = File(abs_path, rel_path, filename, index, self.offset)
+                    file = File(abs_path, rel_path, filename, self.offset)
                     self.files.append(file)
                     dir.add(file)
                     logger.debug("added file %s at offset %s", file, hex(self.offset))
@@ -102,21 +101,25 @@ class Archive (object):
             index += 1
         for file in self.files:
             name = file.relpath.encode('utf8')
+            file.index = index
             self.global_names.add(name, index)
             index += 1
-        del index
 
-        hash_func_id, map_buckets = self.global_names.serialize()
 
         total = self._total
+        assert index - 1 == total
+        del index
+
         dirs_count = len(self.dirs)
         format = self.format
+        hash_func_id, map_buckets = self.global_names.serialize()
+
         logger.info("writing %d file%s in %d director%s:", total, "s" if total > 1 else "", dirs_count, "ies" if dirs_count > 1 else "y")
         string_pool_offset = format.header_size + format.metadata_size * total + format.metadata_header_size
         map_data_offset = string_pool_offset + len(string_pool)
-        map_size = format.map_header_size + format.map_entry_size * total + 4 * (len(map_buckets) + 1) # header all file ids + bucket table + 1 extra bucket end entry
+        map_size = format.map_header_size + format.map_entry_size * total + format.table_entry_size * (len(map_buckets) + 1) # header all file ids + bucket table + 1 extra bucket end entry
         readdir_offset = map_data_offset + map_size
-        readdir_size = (dirs_count + 1) * 4
+        readdir_size = (dirs_count + 1) * format.readdir_entry_size
         file_data_offset = readdir_offset + readdir_size
         file_data_offset_aligned = align(file_data_offset, self.page_size)
 
