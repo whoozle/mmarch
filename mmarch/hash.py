@@ -86,10 +86,10 @@ class HashMap(object):
     def __add(self, item):
         name, _, hash = item
         index = hash % len(self.__buckets)
-        logger.debug("hash(%s) -> %08x, bucket: %d", name, hash, index)
+        # logger.debug("hash(%s) -> %08x, bucket: %d", name, hash, index)
         bucket = self.__buckets[index]
-        if len(bucket) > 0:
-            logger.debug('collision detected in bucket %d: %s', index, bucket)
+        # if len(bucket) > 0:
+        #     logger.debug('collision detected in bucket %d: %s', index, bucket)
         bucket.append(item)
 
     def __rehash(self):
