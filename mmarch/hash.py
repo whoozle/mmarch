@@ -7,9 +7,9 @@ MASK32 = (1 << 32) - 1
 FNV1        = 0
 FNV1A       = 1
 PYTHON      = 2
-R5          = 3
+R5A         = 3
 
-DEFAULT     = R5
+DEFAULT     = R5A
 
 def _add32(x, y):
     return (x + y) & MASK32
@@ -37,11 +37,11 @@ def fnv1a(text):
         value &= MASK32
     return value
 
-def r5(text):
+def r5a(text):
     value = 0
     for c in text:
         value = (value + (c << 4) + (c >> 4)) & MASK32
-        value = _mul32(value, 11)
+        value = _mul32(value, 11) ^ (value >> 29)
     return value
 
 def python(text):
@@ -58,7 +58,7 @@ def get(index):
         FNV1: fnv1,
         FNV1A: fnv1a,
         PYTHON: python,
-        R5: r5
+        R5A: r5a
         # XX: xxhash
     }
     return _func[index]
