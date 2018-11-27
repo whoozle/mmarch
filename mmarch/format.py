@@ -12,7 +12,7 @@ class Format():
         prefix = '>' if self.BE else '<'
         self._header = Struct(prefix + 'IIII') #magic, version, page_size, total index size
         self._metadata_header = Struct(prefix + 'II') #record count, field count
-        self._metadata = Struct(prefix + 'IIIII') #type, offset, size, name offset, name size
+        self._metadata = Struct(prefix + 'IQIII') #type, offset, size, name offset, name size
 
     @property
     def header_size(self):
