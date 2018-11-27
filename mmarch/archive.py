@@ -123,7 +123,8 @@ class Archive (object):
         logger.debug("map data offset = %08x (%+d) 0x%08x", map_offset, map_size, map_offset + map_size)
 
         readdir_offset = map_offset + map_size
-        readdir_size = total * format.readdir_entry_size + format.table_entry_size * (dirs_count + 1)
+        readdir_total = sum(map(lambda x: len(x.files), self.dirs.values()))
+        readdir_size = readdir_total * format.readdir_entry_size + format.table_entry_size * (dirs_count + 1)
         logger.debug("readdir data offset = 0x%08x (%+d) 0x%08x", readdir_offset, readdir_size, readdir_offset + readdir_size)
 
         file_data_offset = readdir_offset + readdir_size
