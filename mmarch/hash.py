@@ -7,7 +7,6 @@ MASK32 = (1 << 32) - 1
 FNV1        = 0
 FNV1A       = 1
 PYTHON      = 2
-# XX          = 3
 R5          = 3
 
 DEFAULT     = R5
@@ -53,54 +52,6 @@ def python(text):
     return value
 
 LE32 = struct.Struct('<I')
-
-def xxhash(text, seed = 0):
-
-    def le32(offset):
-        v, = LE32.unpack(text[offset: offset + 4])
-        return v
-
-    PRIME32_1   = 2654435761
-    PRIME32_2   = 2246822519
-    PRIME32_3   = 3266489917
-    PRIME32_4   =  668265263
-    PRIME32_5   =  374761393
-
-    n = len(text)
-    p = 0
-    if n > 16:
-        limit = n - 16
-        v1, v2, v3, v4 = seed + PRIME32_1 + PRIME32_2, seed + PRIME32_2, seed, (seed - PRIME32_1 + MASK32 + 1) & MASK32
-        while p < limit:
-            v1 += _mul32(le32(p), PRIME32_2); v1 = _rotl32(v1, 13); v1 = _mul32(v1, PRIME32_1); p += 4
-            v2 += _mul32(le32(p), PRIME32_2); v2 = _rotl32(v2, 13); v2 = _mul32(v2, PRIME32_1); p += 4
-            v3 += _mul32(le32(p), PRIME32_2); v3 = _rotl32(v3, 13); v3 = _mul32(v3, PRIME32_1); p += 4
-            v4 += _mul32(le32(p), PRIME32_2); v4 = _rotl32(v4, 13); v4 = _mul32(v4, PRIME32_1); p += 4
-        value = _rotl32(v1, 1) + _rotl32(v2, 7) + _rotl32(v3, 12) + _rotl32(v4, 18)
-    else:
-        value = seed + PRIME32_5
-
-    value = _add32(value, n)
-
-    limit = n - 4
-    while p < limit:
-        value = _add32(value, _mul32(le32(p), PRIME32_3))
-        value = _rotl32(value, 17) * PRIME32_4
-        p += 4
-
-    while p < n:
-        value += _mul32(text[p], PRIME32_5)
-        value = _rotl32(value, 11) * PRIME32_1
-        p += 1
-
-    value ^= (value >> 15)
-    value = _mul32(value, PRIME32_2)
-    value ^= (value >> 13)
-    value = _mul32(value, PRIME32_3)
-    value ^= (value >> 16)
-
-    return value
-
 
 def get(index):
     _func = {
