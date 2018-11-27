@@ -84,8 +84,7 @@ class HashMap(object):
         self.load_factor = load_factor
 
     def __add(self, item):
-        name = item[0]
-        hash = self.__func(name)
+        name, _, hash = item
         index = hash % len(self.__buckets)
         logger.debug("hash(%s) -> %08x, bucket: %d", name, hash, index)
         bucket = self.__buckets[index]
@@ -113,7 +112,7 @@ class HashMap(object):
     def add(self, name, value):
         #logger.debug('adding entry %s of %s', name, value)
         self.__rehash()
-        self.__add((name, value))
+        self.__add((name, value, self.__func(name)))
         self.__size += 1
 
     def serialize(self):

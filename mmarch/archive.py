@@ -30,7 +30,7 @@ class File(object):
         self.abspath = abspath
         self.relpath = relpath
         self.name = name
-        self.index = None
+        self.index = 0
         self.offset = offset
         self.stat = os.stat(abspath)
 
@@ -146,7 +146,7 @@ class Archive (object):
         def write_map_entry(entries):
             r = bytearray()
             for entry in entries:
-                name, id = entry
+                name, id, _ = entry
                 r += format.get_map_entry(string_loc[name], len(name), id)
             return r
 
