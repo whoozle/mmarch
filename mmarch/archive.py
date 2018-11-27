@@ -1,6 +1,6 @@
 import logging
 import os
-import mmarch.hash as hashfunc
+import mmarch.hash as hash
 import mmarch.format as format
 from mmarch.path import create_pool
 
@@ -8,15 +8,6 @@ logger = logging.getLogger('archive')
 
 def align(size, alignment):
     return (size + alignment - 1) // alignment * alignment
-
-class HashMap(object):
-    def __init__(self, func):
-        self.__data = {}
-        self.__func = func
-
-    def add(self, name, value):
-        bname = name.encode('utf-8')
-        self.__data[bname] = value
 
 class Directory (object):
     def __init__(self, name):
@@ -50,7 +41,7 @@ class Archive (object):
         self.offset = 0
         self.files = []
         self.dirs = {}
-        self.globals = HashMap(hashfunc.get(hashfunc.FNV1))
+        self.global_names = hash.HashMap()
         self.format = format.Format(options)
         self._total = 0
 
@@ -96,14 +87,21 @@ class Archive (object):
 
         total = self._total
         string_pool_offset = self.format.header_size + self.format.metadata_size * total + self.format.metadata_header_size
+        hash_data_offset = string_pool_offset + len(string_pool)
+        file_data_offset = hash_data_offset + total * 4 #fixme
 
-        self.format.write_header(stream, self.page_size, total)
+        self.format.write_header(stream, self.page_size, total, len(self.dirs))
         logger.debug('writing %u metadata records', total)
         self.format.write_metadata_header(stream, total)
+        index = 1
         for dir in self.dirs.keys():
             name = dir.encode('utf8')
-            self.format.write_dir(stream, 0, 0, string_pool_offset + string_loc[name], len(name))
+            self.format.write_metadata(stream, 0, 0, string_pool_offset + string_loc[name], len(name))
+            self.global_names.add(name, index)
+            index += 1
         for file in self.files:
             name = file.relpath.encode('utf8')
-            self.format.write_dir(stream, 0, 0, string_pool_offset + string_loc[name], len(name))
+            self.format.write_metadata(stream, file_data_offset + file.offset, file.size, string_pool_offset + string_loc[name], len(name))
+            self.global_names.add(name, index)
+            index += 1
         stream.write(string_pool)
