@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "mmarch_posix.h"
 
 int main(int argc, char ** argv)
@@ -14,13 +17,13 @@ int main(int argc, char ** argv)
 		{ "extract", required_argument, 0, 'e' },
 	};
 
-	int optind = 0;
 	char * extract = NULL;
 	while(1)
 	{
-		int c = getopt_long(argc, argv, "lhe:", options, &optind);
+		int c = getopt_long(argc, argv, "lhe:", options, NULL);
 		if (c == -1)
 			break;
+
 		switch(c)
 		{
 			case 'l':
@@ -31,6 +34,9 @@ int main(int argc, char ** argv)
 				break;
 			case 'e':
 				extract = optarg;
+				break;
+			default:
+				exit(1);
 				break;
 		}
 	}
@@ -43,8 +49,23 @@ int main(int argc, char ** argv)
 		exit(0);
 	}
 
+	if (optind + 1 != argc)
+	{
+		fprintf(stderr, "expected single archive name after options\n");
+		exit(1);
+	}
+
+	int fd = open(argv[optind], O_RDONLY);
+	if (fd < 0)
+	{
+		perror("open");
+		exit(1);
+	}
+
 	struct mmarch_posix_context context;
 	mmarch_context_posix_init(&context);
+	context.fd = fd;
+
 	if (list)
 	{
 		fprintf(stderr, "list\n");
