@@ -41,7 +41,7 @@ def r5a(text):
     value = 0
     for c in text:
         value = (value + (c << 4) + (c >> 4)) & MASK32
-        value = _mul32(value, 11) ^ (value >> 29)
+        value = ((value + (value << 1) + (value << 3)) & MASK32) ^ (value >> 29) #peasant multiplication by 11
     return value
 
 def python(text):
