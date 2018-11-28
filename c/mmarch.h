@@ -13,10 +13,10 @@ extern "C"
         MERROR
     };
 
-    struct mmarch_ops
+    struct mmarch_context
     {
-        int (*map)  (void **ptr, void *context, off_t offset, size_t size);
-        int (*unmap)(void *context, void * data, size_t size);
+        int (*map)  (struct mmarch_context *context, void **ptr, off_t offset, size_t size);
+        int (*unmap)(struct mmarch_context *context, void * data, size_t size);
     };
 
     struct mmarch_loader

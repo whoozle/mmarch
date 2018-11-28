@@ -10,12 +10,16 @@ extern "C"
 
     struct mmarch_posix_context
     {
+        union { struct mmarch_context context; } base;
         int fd;
+        int protection;
+        int flags;
     };
 
-    void * mmarch_posix_op_map(void *context, off_t offset, size_t size);
-    void mmarch_posix_op_unmap(void *context, void * data, size_t size);
-    void mmarch_posix_op_init(mmarch_ops * ops);
+    int mmarch_posix_op_map(struct mmarch_context *context, void **ptr, off_t offset, size_t size);
+    int mmarch_posix_op_unmap(struct mmarch_context *context, void * data, size_t size);
+
+    void mmarch_posix_context_init_default(struct mmarch_posix_context * context);
 
 #ifdef __cplusplus
 }
