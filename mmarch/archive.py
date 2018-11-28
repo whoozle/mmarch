@@ -115,7 +115,12 @@ class Archive (object):
         hash_func_id, map_buckets = self.global_names.serialize()
 
         logger.info("writing %d file%s in %d director%s:", total, "s" if total > 1 else "", dirs_count, "ies" if dirs_count > 1 else "y")
-        string_pool_offset = format.header_size + format.metadata_size * total + format.metadata_header_size
+
+        file_metadata_offset = format.header_size
+        file_metadata_size = format.metadata_size * total + format.metadata_header_size
+        logger.debug("file metadata offset = 0x%08x (%+d)", file_metadata_offset, file_metadata_size)
+
+        string_pool_offset = file_metadata_offset + file_metadata_size
         logger.debug("string pool offset = 0x%08x (%+d) 0x%08x", string_pool_offset, len(string_pool), string_pool_offset + len(string_pool))
 
         map_offset = string_pool_offset + len(string_pool)
@@ -131,7 +136,7 @@ class Archive (object):
         file_data_offset_aligned = align(file_data_offset, self.page_size)
         logger.debug("file data offset = 0x%08x", file_data_offset_aligned)
 
-        format.write_header(stream, self.page_size, file_data_offset_aligned, self.offset + file_data_offset_aligned)
+        format.write_header(stream, self.page_size, file_data_offset_aligned, self.offset + file_data_offset_aligned, file_metadata_offset, map_offset, readdir_offset)
         format.write_metadata_header(stream, total, dirs_count)
         for dir in self.dirs.keys():
             name = dir.encode('utf8')

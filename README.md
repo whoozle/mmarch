@@ -9,7 +9,7 @@
 
 Some design considerations regarding format:
 * Use only 32/64 bit types for effective aligned access
-* No obscure arithmetics, all of offset in header — absolute
+* No obscure arithmetics, all of offsets in header — absolute
 * Group all headers at first 4G, saving on inner offsets
 * Could be either LE or BE
 
@@ -23,6 +23,10 @@ u32     page size, normally 4096, but you can use any arbitrary number, alignmen
 u32     total header size. If you want to mmap header, use this number (aligned to page boundary)
 u64     total file size. Aligned to page size. Reader shall not read anything past this point.
 
+u32     object record table offset
+u32     filename table offset
+u32     readdir table offset
+
 2. Object Record Table Header
 u32     record fields counter, R (could be viewed as version, every record here has R*4 bytes size)
 u32     record count, N. Total record counter. Size of this table is N * R + this header
@@ -35,6 +39,8 @@ u64     file data offset (0 for directories)
 u64     file size (0 for directories)
 u32     name offset (usually string pool below, must've been within header size)
 u32     name size (strings ARE NOT zero terminated, you shall read exact name size bytes from name offset)
+
+[string pool]
 
 4. Filename table
 u32     hash function id. (0 - FNV1, 1 - FNV1A, 2 - PYTHON, 3 - R5A)
