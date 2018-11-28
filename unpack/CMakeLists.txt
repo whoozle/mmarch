@@ -9,3 +9,4 @@ set(SOURCES unpack.c)
 
 add_executable(mmarch-unpack ${SOURCES})
 target_link_libraries(mmarch-unpack mmarch)
+target_compile_options(mmarch-unpack PRIVATE -Wall -pedantic)
