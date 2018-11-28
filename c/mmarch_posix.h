@@ -16,10 +16,7 @@ extern "C"
         int flags;
     };
 
-    int mmarch_posix_op_map(struct mmarch_context *context, void **ptr, off_t offset, size_t size);
-    int mmarch_posix_op_unmap(struct mmarch_context *context, void * data, size_t size);
-
-    void mmarch_posix_context_init_default(struct mmarch_posix_context * context);
+    void mmarch_context_posix_init(struct mmarch_posix_context * context);
 
 #ifdef __cplusplus
 }

@@ -8,16 +8,21 @@
 extern "C"
 {
 #endif
-    enum error
+    typedef enum
     {
-        MERROR
-    };
+		MMARCH_OK = 0,
+        MMARCH_SYSTEM = -1,
+		MMARCH_UNSUPPORTED = -2
+    } mmarch_error;
 
     struct mmarch_context
     {
-        int (*map)  (struct mmarch_context *context, void **ptr, off_t offset, size_t size);
-        int (*unmap)(struct mmarch_context *context, void * data, size_t size);
+		void *			user;
+		mmarch_error    (*map)  (struct mmarch_context *context, void **ptr, off_t offset, size_t size);
+		mmarch_error    (*unmap)(struct mmarch_context *context, void * data, size_t size);
     };
+
+	void mmarch_context_init(struct mmarch_context * context);
 
     struct mmarch_loader
     {
