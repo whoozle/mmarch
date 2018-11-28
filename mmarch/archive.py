@@ -146,8 +146,8 @@ class Archive (object):
         def write_map_entry(entries):
             r = bytearray()
             for entry in entries:
-                name, id, _ = entry
-                r += format.get_map_entry(string_loc[name], len(name), id)
+                _, id, _ = entry
+                r += format.get_map_entry(id)
             return r
 
         format.write_indexed_table(stream, map_buckets, write_map_entry, map_offset + format.map_header_size)
