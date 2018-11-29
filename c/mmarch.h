@@ -18,6 +18,8 @@ extern "C"
 		EMMARCH_INVALID_HEADER_MAGIC = -2,
 		EMMARCH_INCOMPATIBLE_VERSION = -3,
 		EMMARCH_INVALID_OFFSET_IN_HEADER = -4,
+		EMMARCH_PLATFORM_MAP_FAILED = -5,
+		EMMARCH_PLATFORM_UNMAP_FAILED = -6,
 	} mmarch_error;
 
 	const char * mmarch_get_error(mmarch_error error); /*< gets human readable error message */

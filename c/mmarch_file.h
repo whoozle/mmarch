@@ -30,6 +30,23 @@ struct PACKED(4) mmarch_file_header
 	uint32_t readdir_table_offset;
 };
 
+struct PACKED(4) mmarch_file_object_table_entry
+{
+	uint64_t data_offset;
+	uint64_t data_size;
+	uint32_t name_offset;
+	uint32_t name_size;
+};
+
+struct PACKED(4) mmarch_file_object_table
+{
+	uint32_t field_count;
+	uint32_t total_count;
+	uint32_t dir_count;
+	struct mmarch_file_object_table_entry entries[];
+};
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -6,11 +6,19 @@
 
 static mmarch_error mmarch_posix_op_map(struct mmarch_context *context, void **ptr, off_t offset, size_t size)
 {
+	struct mmarch_context_posix *c = (struct mmarch_context_posix *)context;
+	void *r = mmap(NULL, size, c->protection, c->flags, c->fd, offset);
+	if (r == MAP_FAILED)
+		return EMMARCH_PLATFORM_MAP_FAILED;
+	*ptr = r;
 	return EMMARCH_OK;
 }
 
 static mmarch_error mmarch_posix_op_unmap(struct mmarch_context *context, void * data, size_t size)
 {
+	int r = munmap(data, size);
+	if (r)
+		return EMMARCH_PLATFORM_UNMAP_FAILED;
 	return EMMARCH_OK;
 }
 

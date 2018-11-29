@@ -25,6 +25,10 @@ const char * mmarch_get_error(mmarch_error error)
 			return "incompatible archive version";
 		case EMMARCH_INVALID_OFFSET_IN_HEADER:
 			return "invalid offset in header";
+		case EMMARCH_PLATFORM_MAP_FAILED:
+			return "platform map returned error";
+		case EMMARCH_PLATFORM_UNMAP_FAILED:
+			return "platform unmap returned error";
 		default:
 			return "unknown error";
 	}
@@ -83,11 +87,16 @@ mmarch_error mmarch_context_load(struct mmarch_context * context, const uint8_t 
 		return err;
 
 	context->header = mapped_header;
-	context->object_table = (struct mmarch_file_object_table *)(context->header + object_table_offset);
+	struct mmarch_file_object_table *object_table = context->object_table = (struct mmarch_file_object_table *)(context->header + object_table_offset);
 	context->filename_table = (struct mmarch_file_filename_table *)(context->header + filename_table_offset);
 	context->readdir_table = (struct mmarch_file_readdir_table *)(context->header + readdir_table_offset);
 
 	//fixme: more validation here
+	if (object_table->dir_count > object_table->total_count ||
+		(object_table_offset + 12 + object_table->total_count * object_table->field_count) > header_size)
+	{
+		return EMMARCH_INVALID_OFFSET_IN_HEADER;
+	}
 
 	return EMMARCH_OK;
 }
