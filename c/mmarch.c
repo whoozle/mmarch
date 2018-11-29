@@ -177,7 +177,14 @@ error:
 
 static int mmarch_context_filename_cmp(const struct mmarch_context * context, mmarch_id id, const char *name, size_t len)
 {
-	return 0;
+	const char *stored_name;
+	size_t stored_name_length;
+	mmarch_context_get_object_metadata(context, id, &stored_name, &stored_name_length, NULL);
+	int d = (ssize_t)stored_name_length - (ssize_t)len;
+	if (d)
+		return d;
+
+	return strncmp(stored_name, name, len);
 }
 
 mmarch_id mmarch_context_find(const struct mmarch_context * context, const char *name, size_t len)
