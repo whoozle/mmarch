@@ -62,9 +62,14 @@ int main(int argc, char ** argv)
 		exit(1);
 	}
 
-	struct mmarch_posix_context context;
+	struct mmarch_context_posix context;
 	mmarch_context_posix_init(&context);
 	context.fd = fd;
+	mmarch_error err;
+
+	err = mmarch_context_posix_load(&context);
+	if (err)
+		mmarch_fail(err);
 
 	if (list)
 	{
