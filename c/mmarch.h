@@ -11,6 +11,9 @@
 extern "C"
 {
 #endif
+
+	typedef int mmarch_id;
+
 	typedef enum
 	{
 		EMMARCH_OK = 0,
@@ -50,10 +53,18 @@ extern "C"
 		struct mmarch_file_readdir_table *		readdir_table;
 	};
 
+	struct mmarch_readdir_iterator
+	{
+		uint32_t * _ptr;
+	};
+
 	void mmarch_context_init(struct mmarch_context * context);
 	void mmarch_context_deinit(struct mmarch_context * context);
 
 	mmarch_error mmarch_context_load(struct mmarch_context * context, const uint8_t * buf);
+	mmarch_id mmarch_context_find(struct mmarch_context * context, const char *path, size_t len);
+
+	void mmarch_readdir(struct mmarch_context * context, const char *path, size_t len, struct mmarch_readdir_iterator * begin, struct mmarch_readdir_iterator * end);
 
 #ifdef __cplusplus
 }

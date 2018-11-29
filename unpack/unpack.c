@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -8,26 +9,26 @@
 
 int main(int argc, char ** argv)
 {
-	int list = 0;
-	int help = 0;
 	struct option options[] =
 	{
-		{ "list", no_argument, 0, 'l' },
+		{ "list", optional_argument, 0, 'l' },
 		{ "help", no_argument, 0, 'h' },
 		{ "extract", required_argument, 0, 'e' },
 	};
+	const char *list_dir = NULL;
+	int help = 0;
 
 	char * extract = NULL;
 	while(1)
 	{
-		int c = getopt_long(argc, argv, "lhe:", options, NULL);
+		int c = getopt_long(argc, argv, "l::he:", options, NULL);
 		if (c == -1)
 			break;
 
 		switch(c)
 		{
 			case 'l':
-				list = 1;
+				list_dir = optarg? optarg: "";
 				break;
 			case 'h':
 				help = 1;
@@ -71,9 +72,11 @@ int main(int argc, char ** argv)
 	if (err)
 		mmarch_fail(err);
 
-	if (list)
+	if (list_dir)
 	{
-		fprintf(stderr, "list\n");
+		fprintf(stderr, "readdir(\"%s\"):\n", list_dir);
+		struct mmarch_readdir_iterator begin, end;
+		mmarch_readdir(&context.base.context, list_dir, strlen(list_dir), &begin, &end);
 	}
 	if (extract)
 	{

@@ -106,3 +106,19 @@ void mmarch_context_deinit(struct mmarch_context * context)
 	if (context->header)
 		context->unmap(context, context->header, context->header_size);
 }
+
+void mmarch_readdir(struct mmarch_context * context, const char *path, size_t len, struct mmarch_readdir_iterator * begin, struct mmarch_readdir_iterator * end)
+{
+	mmarch_id id = mmarch_context_find(context, path, len);
+	if (id < 0)
+		goto error;
+
+	return;
+error:
+	begin->_ptr = end->_ptr = NULL;
+}
+
+mmarch_id mmarch_context_find(struct mmarch_context * context, const char *name, size_t len)
+{
+	return -1;
+}
