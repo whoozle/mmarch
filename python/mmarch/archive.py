@@ -54,7 +54,7 @@ class Archive (object):
 
     def add_dir(self, src_dir):
         logger.info("processing directory %s", src_dir)
-        for dirpath, dirnames, filenames in os.walk(src_dir, followlinks = self.options.follow_links, topdown = False):
+        for dirpath, dirnames, filenames in os.walk(src_dir, followlinks = self.options.follow_links):
             rel_dirpath = os.path.relpath(dirpath, src_dir)
             if rel_dirpath == '.':
                 rel_dirpath = ''
