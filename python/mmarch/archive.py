@@ -163,7 +163,7 @@ class Archive (object):
             r = bytearray()
             for file in dir.files:
                 name = file.name.encode('utf-8')
-                r += format.get_readdir_entry(file.index + dirs_count, string_loc[name], len(name))
+                r += format.get_readdir_entry(file.index + dirs_count, string_pool_offset + string_loc[name], len(name))
             return r
 
         format.write_indexed_table(stream, self.dirs.items(), write_readdir_entry, readdir_offset)
