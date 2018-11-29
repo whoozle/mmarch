@@ -13,6 +13,32 @@ size_t mmarch_get_header_size()
 	return sizeof(struct mmarch_file_header);
 }
 
+static uint32_t r5a(const char *str, size_t len)
+{
+	uint32_t value = 0;
+	while(len--)
+	{
+		char c = *str++;
+        value += (c << 4) + (c >> 4);
+        value = (value + (value << 1) + (value << 3)) ^ (value >> 29); //peasant multiplication by 11 and xor with upper bit of previous value
+	}
+	return value;
+}
+
+hash_func mmarch_get_hash_func(uint32_t type)
+{
+	printf("HASH %u\n", type);
+	switch(type)
+	{
+		case 3: //R5A
+			return &r5a;
+
+		default:
+			return NULL;
+	}
+}
+
+
 const char * mmarch_get_error(mmarch_error error)
 {
 	switch(error)
@@ -29,6 +55,8 @@ const char * mmarch_get_error(mmarch_error error)
 			return "platform map returned error";
 		case EMMARCH_PLATFORM_UNMAP_FAILED:
 			return "platform unmap returned error";
+		case EMMARCH_HASH_FUNCTION_UNSUPPORTED:
+			return "hash function unsupported";
 		default:
 			return "unknown error";
 	}
@@ -87,9 +115,10 @@ mmarch_error mmarch_context_load(struct mmarch_context * context, const uint8_t 
 		return err;
 
 	context->header = mapped_header;
-	struct mmarch_file_object_table *object_table = context->object_table = (struct mmarch_file_object_table *)(context->header + object_table_offset);
-	context->filename_table = (struct mmarch_file_filename_table *)(context->header + filename_table_offset);
-	context->readdir_table = (struct mmarch_file_readdir_table *)(context->header + readdir_table_offset);
+	struct mmarch_file_object_table *object_table = context->_object_table = (struct mmarch_file_object_table *)(context->header + object_table_offset);
+	context->_filename_table = (struct mmarch_file_filename_table *)(context->header + filename_table_offset);
+	context->_readdir_table = (struct mmarch_file_readdir_table *)(context->header + readdir_table_offset);
+	printf("%08x\n", filename_table_offset);
 
 	//fixme: more validation here
 	if (object_table->dir_count > object_table->total_count ||
@@ -97,6 +126,10 @@ mmarch_error mmarch_context_load(struct mmarch_context * context, const uint8_t 
 	{
 		return EMMARCH_INVALID_OFFSET_IN_HEADER;
 	}
+
+	context->hash_func = mmarch_get_hash_func(L32(context->_filename_table, hash_func_id));
+	if (!context->hash_func)
+		return EMMARCH_HASH_FUNCTION_UNSUPPORTED;
 
 	return EMMARCH_OK;
 }
