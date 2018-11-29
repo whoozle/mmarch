@@ -46,6 +46,23 @@ struct PACKED(4) mmarch_file_object_table
 	struct mmarch_file_object_table_entry entries[];
 };
 
+struct PACKED(4) mmarch_file_filename_table_entry
+{
+	uint32_t object_id;
+};
+
+struct PACKED(4) mmarch_file_filename_table
+{
+	uint32_t hash_func_id;
+	uint32_t bucket_count;
+	uint32_t bucket_offset[];
+};
+
+struct PACKED(4) mmarch_file_readdir_table
+{
+	uint32_t record_count;
+	uint32_t bucket_offset[];
+};
 
 #ifdef __cplusplus
 }
