@@ -2,12 +2,12 @@
 #include <sys/mman.h>
 
 
-static int mmarch_posix_op_map(struct mmarch_context *context, void **ptr, off_t offset, size_t size)
+static mmarch_error mmarch_posix_op_map(struct mmarch_context *context, void **ptr, off_t offset, size_t size)
 {
 	return MMARCH_OK;
 }
 
-static int mmarch_posix_op_unmap(struct mmarch_context *context, void * data, size_t size)
+static mmarch_error mmarch_posix_op_unmap(struct mmarch_context *context, void * data, size_t size)
 {
 	return MMARCH_OK;
 }

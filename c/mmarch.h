@@ -26,7 +26,7 @@ extern "C"
 
     struct mmarch_loader
     {
-        void *context;
+        struct mmarch_context * context;
     };
 
 #ifdef __cplusplus
