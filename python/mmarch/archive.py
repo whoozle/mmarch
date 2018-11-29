@@ -96,7 +96,7 @@ class Archive (object):
         filenames = [entry for entry in self._all()]
         string_pool, string_loc = create_pool(filenames)
 
-        index = 1
+        index = 0
         for dir in self.dirs.keys():
             name = dir.encode('utf8')
             self.global_names.add(name, index)
@@ -109,7 +109,7 @@ class Archive (object):
 
 
         total = self._total
-        assert index - 1 == total
+        assert index == total
         del index
 
         dirs_count = len(self.dirs)
