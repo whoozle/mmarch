@@ -75,7 +75,7 @@ extern "C"
 	static inline void mmarch_readdir_iterator_next(struct mmarch_readdir_iterator * iter)
 	{ iter->_ptr += 12; }
 
-	mmarch_id mmarch_readdir_iterator_get(const struct mmarch_context * context, const struct mmarch_readdir_iterator * iter);
+	mmarch_id mmarch_readdir_iterator_get(const struct mmarch_context * context, const struct mmarch_readdir_iterator * iter, const char ** name, size_t * name_length);
 
 	/*
 	 * context api
@@ -87,6 +87,7 @@ extern "C"
 	mmarch_id mmarch_context_find(const struct mmarch_context * context, const char *path, size_t len);
 
 	void mmarch_context_readdir(const struct mmarch_context * context, const char *path, size_t len, struct mmarch_readdir_iterator * begin, struct mmarch_readdir_iterator * end);
+	void mmarch_context_get_object_metadata(const struct mmarch_context * context, mmarch_id id, const char **name, size_t *name_length, off_t * size);
 
 #ifdef __cplusplus
 }

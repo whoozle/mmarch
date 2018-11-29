@@ -141,8 +141,17 @@ void mmarch_context_deinit(struct mmarch_context * context)
 		context->unmap(context, context->header, context->header_size);
 }
 
-mmarch_id mmarch_readdir_iterator_get(const struct mmarch_context * context, const struct mmarch_readdir_iterator * iter)
-{ return L32(iter->_ptr[0]); }
+mmarch_id mmarch_readdir_iterator_get(const struct mmarch_context * context, const struct mmarch_readdir_iterator * iter, const char ** name, size_t * name_length)
+{
+	const struct mmarch_file_readdir_table_entry * entry = (const struct mmarch_file_readdir_table_entry *)iter->_ptr;
+	mmarch_id id = L32(entry->object_id);
+	uint32_t name_offset = L32(entry->name_offset);
+	if (name_length)
+		*name_length = L32(entry->name_length);
+	if (name)
+		*name = (const char *)context->header + name_offset;
+	return id;
+}
 
 void mmarch_context_readdir(const struct mmarch_context * context, const char *path, size_t len, struct mmarch_readdir_iterator * begin, struct mmarch_readdir_iterator * end)
 {
@@ -179,8 +188,8 @@ mmarch_id mmarch_context_find(const struct mmarch_context * context, const char 
 
 	uint32_t begin = L32(context->_filename_table->bucket_offset[index]);
 	uint32_t end = L32(context->_filename_table->bucket_offset[index + 1]);
-	struct mmarch_file_filename_table_entry * begin_ptr = (struct mmarch_file_filename_table_entry *)(context->header + begin);
-	struct mmarch_file_filename_table_entry * end_ptr = (struct mmarch_file_filename_table_entry *)(context->header + end);
+	const struct mmarch_file_filename_table_entry * begin_ptr = (const struct mmarch_file_filename_table_entry *)(context->header + begin);
+	const struct mmarch_file_filename_table_entry * end_ptr = (const struct mmarch_file_filename_table_entry *)(context->header + end);
 	for(; begin_ptr != end_ptr; ++begin_ptr)
 	{
 		mmarch_id id = L32(begin_ptr->object_id);
@@ -188,4 +197,27 @@ mmarch_id mmarch_context_find(const struct mmarch_context * context, const char 
 			return id;
 	}
 	return -1;
+}
+
+void mmarch_context_get_object_metadata(const struct mmarch_context * context, mmarch_id id, const char **name, size_t *name_length, off_t *size)
+{
+	const struct mmarch_file_object_table_entry * entry = context->_object_table->entries + id;
+	if  ((const uint8_t *)entry >= context->header + context->header_size)
+		goto error;
+
+	uint32_t name_offset = L32(entry->name_offset);
+	uint32_t name_size = L32(entry->name_size);
+	if (name_offset + name_size > context->header_size)
+		return;
+
+	if (name)
+		*name = (const char *)context->header + name_offset;
+	if (name_length)
+		*name_length = name_size;
+	if (size)
+		*size = L64(entry->data_size);
+	return;
+error:
+	*name = NULL;
+	*name_length = 0;
 }

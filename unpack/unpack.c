@@ -79,8 +79,15 @@ int main(int argc, char ** argv)
 		mmarch_context_readdir(&context.base.context, list_dir, strlen(list_dir), &begin, &end);
 		while(!mmarch_readdir_iterator_equals(&begin, &end))
 		{
-			mmarch_id id = mmarch_readdir_iterator_get(&context.base.context, &begin);
-			printf("%d\n", id);
+			const char *name;
+			size_t name_len;
+
+			mmarch_id id = mmarch_readdir_iterator_get(&context.base.context, &begin, &name, &name_len);
+
+			if (name)
+				printf("%d:\t%.*s\n", id, (int)name_len, name);
+			else
+				printf("%d:\t--no-name--\n", id);
 			mmarch_readdir_iterator_next(&begin);
 		}
 	}
