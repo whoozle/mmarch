@@ -79,5 +79,6 @@ int main(int argc, char ** argv)
 	{
 		fprintf(stderr, "extract %s\n", extract);
 	}
+	mmarch_context_posix_deinit(&context);
 	exit(0);
 }

@@ -26,6 +26,11 @@ void mmarch_context_posix_init(struct mmarch_context_posix * context)
 	context->protection = PROT_READ;
 }
 
+void mmarch_context_posix_deinit(struct mmarch_context_posix * context)
+{
+	mmarch_context_deinit(&context->base.context);
+}
+
 mmarch_error mmarch_context_posix_load(struct mmarch_context_posix * context)
 {
 	lseek(context->fd, 0, SEEK_SET);
@@ -34,5 +39,5 @@ mmarch_error mmarch_context_posix_load(struct mmarch_context_posix * context)
 	if (read(context->fd, buf, sizeof(buf)) != sizeof(buf))
 		return EMMARCH_READ_FAILED;
 
-	mmarch_context_load(&context->base.context, buf);
+	return mmarch_context_load(&context->base.context, buf);
 }
