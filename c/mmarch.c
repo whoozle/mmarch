@@ -141,15 +141,25 @@ void mmarch_context_deinit(struct mmarch_context * context)
 		context->unmap(context, context->header, context->header_size);
 }
 
-mmarch_id mmarch_readdir_iterator_get(const struct mmarch_context * context, const struct mmarch_readdir_iterator * iter, const char ** name, size_t * name_length)
+mmarch_id mmarch_readdir_iterator_get(const struct mmarch_context * context, const struct mmarch_readdir_iterator * iter, const char ** name_ptr, size_t * name_length_ptr)
 {
 	const struct mmarch_file_readdir_table_entry * entry = (const struct mmarch_file_readdir_table_entry *)iter->_ptr;
 	mmarch_id id = L32(entry->object_id);
 	uint32_t name_offset = L32(entry->name_offset);
-	if (name_length)
-		*name_length = L32(entry->name_length);
-	if (name)
-		*name = (const char *)context->header + name_offset;
+	uint32_t name_length = L32(entry->name_length);
+	if (name_offset + name_length > context->header_size)
+	{
+		if (name_length_ptr)
+			*name_length_ptr = 0;
+		if (name_ptr)
+			*name_ptr = NULL;
+		return id;
+	}
+
+	if (name_length_ptr)
+		*name_length_ptr = name_length;
+	if (name_ptr)
+		*name_ptr = (const char *)context->header + name_offset;
 	return id;
 }
 
@@ -167,6 +177,7 @@ void mmarch_context_readdir(const struct mmarch_context * context, const char *p
 
 	uint32_t begin_off = L32(context->_readdir_table->list_offset[id]);
 	uint32_t end_off = L32(context->_readdir_table->list_offset[id + 1]);
+
 	begin->_ptr = context->header + begin_off;
 	end->_ptr = context->header + end_off;
 
@@ -190,11 +201,13 @@ static int mmarch_context_filename_cmp(const struct mmarch_context * context, mm
 mmarch_id mmarch_context_find(const struct mmarch_context * context, const char *name, size_t len)
 {
 	uint32_t index = context->hash_func(name, len) % context->_bucket_count;
+
 	if ((const uint8_t *)(context->_filename_table->bucket_offset + index + 1) >= context->header + context->header_size)
 		return -1;
 
 	uint32_t begin = L32(context->_filename_table->bucket_offset[index]);
 	uint32_t end = L32(context->_filename_table->bucket_offset[index + 1]);
+
 	const struct mmarch_file_filename_table_entry * begin_ptr = (const struct mmarch_file_filename_table_entry *)(context->header + begin);
 	const struct mmarch_file_filename_table_entry * end_ptr = (const struct mmarch_file_filename_table_entry *)(context->header + end);
 	for(; begin_ptr != end_ptr; ++begin_ptr)
@@ -214,6 +227,7 @@ void mmarch_context_get_object_metadata(const struct mmarch_context * context, m
 
 	uint32_t name_offset = L32(entry->name_offset);
 	uint32_t name_size = L32(entry->name_size);
+
 	if (name_offset + name_size > context->header_size)
 		return;
 
