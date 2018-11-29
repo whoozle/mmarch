@@ -31,6 +31,7 @@ u32     page size, normally 4096, but you can use any arbitrary number, alignmen
 u32     total header size. If you want to mmap header, use this number (aligned to page boundary)
 u64     total file size. Aligned to page size. Reader shall not read anything past this point.
 
+//all the following table offsets in header should be aligned (at least 4 bytes)
 u32     object record table offset
 u32     filename table offset
 u32     readdir table offset
