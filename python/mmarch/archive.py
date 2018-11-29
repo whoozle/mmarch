@@ -134,7 +134,7 @@ class Archive (object):
         string_pool_offset = readdir_offset + readdir_size
         logger.debug("string pool offset = 0x%08x (%+d) 0x%08x", string_pool_offset, len(string_pool), string_pool_offset + len(string_pool))
 
-        file_data_offset = readdir_offset + readdir_size
+        file_data_offset = string_pool_offset + len(string_pool)
         file_data_offset_aligned = align(file_data_offset, self.page_size)
         logger.debug("file data offset = 0x%08x", file_data_offset_aligned)
 
