@@ -58,10 +58,17 @@ struct PACKED(4) mmarch_file_filename_table
 	uint32_t bucket_offset[];
 };
 
+struct PACKED(4) mmarch_file_readdir_table_entry
+{
+	uint32_t object_id;
+	uint32_t name_offset;
+	uint32_t name_length;
+};
+
 struct PACKED(4) mmarch_file_readdir_table
 {
 	uint32_t record_count;
-	uint32_t bucket_offset[];
+	uint32_t list_offset[];
 };
 
 #ifdef __cplusplus

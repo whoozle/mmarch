@@ -27,7 +27,6 @@ static uint32_t r5a(const char *str, size_t len)
 
 hash_func mmarch_get_hash_func(uint32_t type)
 {
-	printf("HASH %u\n", type);
 	switch(type)
 	{
 		case 3: //R5A
@@ -125,6 +124,7 @@ mmarch_error mmarch_context_load(struct mmarch_context * context, const uint8_t 
 	{
 		return EMMARCH_INVALID_OFFSET_IN_HEADER;
 	}
+	context->_dir_count = L32(object_table->dir_count);
 
 	context->hash_func = mmarch_get_hash_func(L32(context->_filename_table->hash_func_id));
 	if (!context->hash_func)
@@ -141,23 +141,51 @@ void mmarch_context_deinit(struct mmarch_context * context)
 		context->unmap(context, context->header, context->header_size);
 }
 
-void mmarch_readdir(struct mmarch_context * context, const char *path, size_t len, struct mmarch_readdir_iterator * begin, struct mmarch_readdir_iterator * end)
+mmarch_id mmarch_readdir_iterator_get(const struct mmarch_context * context, const struct mmarch_readdir_iterator * iter)
+{ return L32(iter->_ptr[0]); }
+
+void mmarch_context_readdir(const struct mmarch_context * context, const char *path, size_t len, struct mmarch_readdir_iterator * begin, struct mmarch_readdir_iterator * end)
 {
 	mmarch_id id = mmarch_context_find(context, path, len);
 	if (id < 0)
 		goto error;
+
+	if (id >= context->_dir_count)
+		goto error;
+
+	if ((const uint8_t *)(context->_readdir_table->list_offset + id + 1) >= context->header + context->header_size)
+		goto error;
+
+	uint32_t begin_off = L32(context->_readdir_table->list_offset[id]);
+	uint32_t end_off = L32(context->_readdir_table->list_offset[id + 1]);
+	begin->_ptr = context->header + begin_off;
+	end->_ptr = context->header + end_off;
 
 	return;
 error:
 	begin->_ptr = end->_ptr = NULL;
 }
 
-mmarch_id mmarch_context_find(struct mmarch_context * context, const char *name, size_t len)
+static int mmarch_context_filename_cmp(const struct mmarch_context * context, mmarch_id id, const char *name, size_t len)
+{
+	return 0;
+}
+
+mmarch_id mmarch_context_find(const struct mmarch_context * context, const char *name, size_t len)
 {
 	uint32_t index = context->hash_func(name, len) % context->_bucket_count;
-	//fixme: validate this
+	if ((const uint8_t *)(context->_filename_table->bucket_offset + index + 1) >= context->header + context->header_size)
+		return -1;
+
 	uint32_t begin = L32(context->_filename_table->bucket_offset[index]);
 	uint32_t end = L32(context->_filename_table->bucket_offset[index + 1]);
-	printf("%u %08x %08x\n", index, begin, end);
+	struct mmarch_file_filename_table_entry * begin_ptr = (struct mmarch_file_filename_table_entry *)(context->header + begin);
+	struct mmarch_file_filename_table_entry * end_ptr = (struct mmarch_file_filename_table_entry *)(context->header + end);
+	for(; begin_ptr != end_ptr; ++begin_ptr)
+	{
+		mmarch_id id = L32(begin_ptr->object_id);
+		if (mmarch_context_filename_cmp(context, id, name, len) == 0)
+			return id;
+	}
 	return -1;
 }

@@ -76,10 +76,11 @@ int main(int argc, char ** argv)
 	{
 		fprintf(stderr, "readdir(\"%s\"):\n", list_dir);
 		struct mmarch_readdir_iterator begin, end;
-		mmarch_readdir(&context.base.context, list_dir, strlen(list_dir), &begin, &end);
+		mmarch_context_readdir(&context.base.context, list_dir, strlen(list_dir), &begin, &end);
 		while(!mmarch_readdir_iterator_equals(&begin, &end))
 		{
-			printf("%d\n", mmarch_readdir_iterator_get(&begin));
+			mmarch_id id = mmarch_readdir_iterator_get(&context.base.context, &begin);
+			printf("%d\n", id);
 			mmarch_readdir_iterator_next(&begin);
 		}
 	}

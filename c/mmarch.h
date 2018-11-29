@@ -55,6 +55,7 @@ extern "C"
 		hash_func		hash_func;
 
 		//private, use at your own risk
+		uint32_t		_dir_count;
 		uint32_t		_bucket_count;
 
 		struct mmarch_file_object_table *		_object_table;
@@ -62,25 +63,30 @@ extern "C"
 		struct mmarch_file_readdir_table *		_readdir_table;
 	};
 
+	/*
+	 * Iterator
+	 */
 	struct mmarch_readdir_iterator
 	{
-		uint32_t * _ptr;
+		uint8_t * _ptr;
 	};
+	static inline int mmarch_readdir_iterator_equals(const struct mmarch_readdir_iterator * a, const struct mmarch_readdir_iterator * b)
+	{ return a->_ptr == b->_ptr; }
+	static inline void mmarch_readdir_iterator_next(struct mmarch_readdir_iterator * iter)
+	{ iter->_ptr += 12; }
 
+	mmarch_id mmarch_readdir_iterator_get(const struct mmarch_context * context, const struct mmarch_readdir_iterator * iter);
+
+	/*
+	 * context api
+	 */
 	void mmarch_context_init(struct mmarch_context * context);
 	void mmarch_context_deinit(struct mmarch_context * context);
 
 	mmarch_error mmarch_context_load(struct mmarch_context * context, const uint8_t * buf);
-	mmarch_id mmarch_context_find(struct mmarch_context * context, const char *path, size_t len);
+	mmarch_id mmarch_context_find(const struct mmarch_context * context, const char *path, size_t len);
 
-	static inline int mmarch_readdir_iterator_equals(const struct mmarch_readdir_iterator * a, const struct mmarch_readdir_iterator * b)
-	{ return a->_ptr == b->_ptr; }
-	static inline void mmarch_readdir_iterator_next(struct mmarch_readdir_iterator * iter)
-	{ ++ iter->_ptr; }
-	static inline mmarch_id mmarch_readdir_iterator_get(const struct mmarch_readdir_iterator * iter)
-	{ return *iter->_ptr; }
-
-	void mmarch_readdir(struct mmarch_context * context, const char *path, size_t len, struct mmarch_readdir_iterator * begin, struct mmarch_readdir_iterator * end);
+	void mmarch_context_readdir(const struct mmarch_context * context, const char *path, size_t len, struct mmarch_readdir_iterator * begin, struct mmarch_readdir_iterator * end);
 
 #ifdef __cplusplus
 }
