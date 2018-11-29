@@ -146,7 +146,6 @@ class Archive (object):
         for file in self.files:
             name = file.relpath.encode('utf8')
             format.write_metadata(stream, file_data_offset + file.offset, file.size, string_pool_offset + string_loc[name], len(name))
-        stream.write(string_pool)
 
         format.write_map_header(stream, hash_func_id, len(map_buckets))
 
@@ -168,6 +167,7 @@ class Archive (object):
             return r
 
         format.write_indexed_table(stream, self.dirs.items(), write_readdir_entry, readdir_offset)
+        stream.write(string_pool)
 
         stream.write(pad(file_data_offset, self.page_size))
 
