@@ -88,6 +88,8 @@ class Archive (object):
             yield dir
         for file in self.files:
             yield file.relpath
+        for file in self.files:
+            yield file.name
 
     def write(self, stream):
         logger.info("building string pool and hash map...")
@@ -158,10 +160,11 @@ class Archive (object):
         format.write_indexed_table(stream, map_buckets, write_map_entry, map_offset + format.map_header_size)
 
         def write_readdir_entry(entry):
-            name, dir = entry
+            dirname, dir = entry
             r = bytearray()
             for file in dir.files:
-                r += format.get_readdir_entry(file.index + dirs_count)
+                name = file.name.encode('utf-8')
+                r += format.get_readdir_entry(file.index + dirs_count, string_loc[name], len(name))
             return r
 
         format.write_indexed_table(stream, self.dirs.items(), write_readdir_entry, readdir_offset)

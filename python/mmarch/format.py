@@ -12,11 +12,11 @@ class Format():
         prefix = '>' if self.BE else '<'
         self._header = Struct(prefix + 'IIIIQIII') #magic, version, page_size, total index size, total file size
         self._metadata_header = Struct(prefix + 'III') #field count(version), record count, dir count (first dir_count descriptors are directories)
-        self._metadata = Struct(prefix + 'QQII') #offset, size, name offset, name size
+        self._metadata = Struct(prefix + 'QQII') #offset, size, full name offset, full name size
         self._map_header = Struct(prefix + 'II') #hash function id, bucket count
         self._map_entry = Struct(prefix + 'I') #name offset, name size, id
         self._table_entry = Struct(prefix + 'I') #offset to table
-        self._readdir_entry = Struct(prefix + 'I') #file id
+        self._readdir_entry = Struct(prefix + 'III') #file id, local name offset
 
     @property
     def header_size(self):

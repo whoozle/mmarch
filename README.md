@@ -45,8 +45,8 @@ N *
 3. Object Record, each of size R * u32
 u64     file data offset (0 for directories)
 u64     file size (0 for directories)
-u32     name offset (usually string pool below, must've been within header size)
-u32     name size (strings ARE NOT zero terminated, you shall read exact name size bytes from name offset)
+u32     full path offset (usually string pool below, must've been within header size)
+u32     full path length (strings ARE NOT zero terminated, you shall read exact name size bytes from name offset)
 
 [string pool]
 
@@ -73,6 +73,8 @@ u32     offset to the end of for directory D - 1
 
 Readdir table entry
 u32     object id (see object record table, p.2)
+u32     local name offset (no path)
+u32     local name length
 
 [gap to align to page size]
 [file data referenced by offset/size in object table]
