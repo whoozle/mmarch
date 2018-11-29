@@ -60,7 +60,10 @@ class Archive (object):
                 rel_dirpath = ''
 
             try:
-                dir = self.dirs.setdefault(rel_dirpath, Directory(dirpath))
+                if rel_dirpath in self.dirs:
+                    raise Exception("duplicate path %s" %rel_dirpath)
+                dir = Directory(dirpath)
+                self.dirs[rel_dirpath] = dir
                 self._total += 1
             except Exception as ex:
                 logger.error("adding directory failed: %s", ex)
