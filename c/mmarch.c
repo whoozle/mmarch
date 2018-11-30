@@ -129,12 +129,12 @@ mmarch_error mmarch_context_load(struct mmarch_context * context, const uint8_t 
 	}
 	context->_dir_count = dir_count;
 	context->_object_count = object_count;
+	context->_bucket_count = L32(context->_filename_table->bucket_count);
 
 	context->hash_func = mmarch_get_hash_func(L32(context->_filename_table->hash_func_id));
 	if (!context->hash_func)
 		return EMMARCH_HASH_FUNCTION_UNSUPPORTED;
 
-	context->_bucket_count = L32(context->_filename_table->bucket_count);
 
 	return EMMARCH_OK;
 }
