@@ -197,7 +197,7 @@ class Archive (object):
             r = bytearray()
             for subdir in dir.dirs:
                 name = subdir.name.encode('utf-8')
-                r += format.get_readdir_entry(dir.index, string_pool_offset + string_loc[name], len(name))
+                r += format.get_readdir_entry(subdir.index, string_pool_offset + string_loc[name], len(name))
             for file in dir.files:
                 name = file.name.encode('utf-8')
                 r += format.get_readdir_entry(file.index, string_pool_offset + string_loc[name], len(name))
