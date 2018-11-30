@@ -195,7 +195,7 @@ static int mmarch_context_filename_cmp(const struct mmarch_context * context, mm
 {
 	const char *stored_name;
 	size_t stored_name_length;
-	mmarch_context_get_object_metadata(context, id, &stored_name, &stored_name_length, NULL);
+	mmarch_context_get_object_name(context, id, &stored_name, &stored_name_length, NULL);
 	int d = (ssize_t)stored_name_length - (ssize_t)len;
 	if (d)
 		return d;
@@ -224,7 +224,7 @@ mmarch_id mmarch_context_find(const struct mmarch_context * context, const char 
 	return -1;
 }
 
-void mmarch_context_get_object_metadata(const struct mmarch_context * context, mmarch_id id, const char **name, size_t *name_length, off_t *size)
+void mmarch_context_get_object_name(const struct mmarch_context * context, mmarch_id id, const char **name, size_t *name_length, off_t *size)
 {
 	const struct mmarch_file_object_table_entry * entry = context->_object_table->entries + id;
 	if  ((const uint8_t *)entry >= context->header + context->header_size)
