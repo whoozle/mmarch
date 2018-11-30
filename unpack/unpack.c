@@ -96,6 +96,13 @@ int main(int argc, char ** argv)
 		fprintf(stderr, "extracting %s...\n", extract);
 		mmarch_id id = mmarch_context_find(&context.base.context, extract, strlen(extract));
 		fprintf(stderr, "object id = %d\n", id);
+		if (id >= 0)
+		{
+			struct mmarch_mapping data;
+			mmarch_error r = mmarch_context_map_object(&context.base.context, &data, id);
+			if (r)
+				mmarch_fail(r);
+		}
 	}
 	mmarch_context_posix_deinit(&context);
 	exit(0);

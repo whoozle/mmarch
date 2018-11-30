@@ -88,7 +88,19 @@ extern "C"
 	mmarch_id mmarch_context_find(const struct mmarch_context * context, const char *path, size_t len);
 
 	void mmarch_context_readdir(const struct mmarch_context * context, const char *path, size_t len, struct mmarch_readdir_iterator * begin, struct mmarch_readdir_iterator * end);
-	void mmarch_context_get_object_name(const struct mmarch_context * context, mmarch_id id, const char **name, size_t *name_length, off_t * size);
+
+	void mmarch_context_get_object_metadata(const struct mmarch_context * context, mmarch_id id, const char **name, size_t *name_length, off_t * offset, off_t * size);
+	static inline void mmarch_context_get_object_name(const struct mmarch_context * context, mmarch_id id, const char **name, size_t *name_length)
+	{ mmarch_context_get_object_metadata(context, id, name, name_length, NULL, NULL); }
+
+	struct mmarch_mapping
+	{
+		void * data;
+		size_t size;
+	};
+
+	mmarch_error mmarch_context_map_object(struct mmarch_context * context, struct mmarch_mapping * mapping, mmarch_id id);
+	mmarch_error mmarch_context_unmap_object(struct mmarch_context * context, struct mmarch_mapping * mapping);
 
 #ifdef __cplusplus
 }

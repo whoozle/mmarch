@@ -195,7 +195,7 @@ static int mmarch_context_filename_cmp(const struct mmarch_context * context, mm
 {
 	const char *stored_name;
 	size_t stored_name_length;
-	mmarch_context_get_object_name(context, id, &stored_name, &stored_name_length, NULL);
+	mmarch_context_get_object_name(context, id, &stored_name, &stored_name_length);
 	int d = (ssize_t)stored_name_length - (ssize_t)len;
 	if (d)
 		return d;
@@ -224,7 +224,7 @@ mmarch_id mmarch_context_find(const struct mmarch_context * context, const char 
 	return -1;
 }
 
-void mmarch_context_get_object_name(const struct mmarch_context * context, mmarch_id id, const char **name, size_t *name_length, off_t *size)
+void mmarch_context_get_object_metadata(const struct mmarch_context * context, mmarch_id id, const char **name, size_t *name_length, off_t *offset, off_t *size)
 {
 	const struct mmarch_file_object_table_entry * entry = context->_object_table->entries + id;
 	if  ((const uint8_t *)entry >= context->header + context->header_size)
@@ -234,16 +234,56 @@ void mmarch_context_get_object_name(const struct mmarch_context * context, mmarc
 	uint32_t name_size = L32(entry->name_size);
 
 	if (name_offset + name_size > context->header_size)
-		return;
+		goto error;
 
 	if (name)
 		*name = (const char *)context->header + name_offset;
 	if (name_length)
 		*name_length = name_size;
+	if (offset)
+		*offset = L64(entry->data_offset);
 	if (size)
 		*size = L64(entry->data_size);
+
 	return;
+
 error:
-	*name = NULL;
-	*name_length = 0;
+	if (name)
+		*name = NULL;
+	if (name_length)
+		*name_length = 0;
+	if (offset)
+		*offset = 0;
+	if (size)
+		*size = 0;
+}
+
+mmarch_error mmarch_context_map_object(struct mmarch_context * context, struct mmarch_mapping * mapping, mmarch_id id)
+{
+	off_t offset, size;
+	mmarch_context_get_object_metadata(context, id, NULL, NULL, &offset, &size);
+	if (size != 0)
+	{
+		void *ptr;
+		mmarch_error r = context->map(context, &ptr, offset, size);
+		if (r)
+			return r;
+
+		mapping->data = ptr;
+		mapping->size = size;
+	}
+	else
+	{
+		mapping->data = NULL;
+		mapping->size = 0;
+	}
+	return EMMARCH_OK;
+}
+
+mmarch_error mmarch_context_unmap_object(struct mmarch_context * context, struct mmarch_mapping * mapping)
+{
+	if (mapping->data && mapping->size)
+		return context->unmap(context, mapping->data, mapping->size);
+	else
+		return EMMARCH_OK;
 }
