@@ -179,7 +179,7 @@ class Archive (object):
             format.write_metadata(stream, 0, 0, string_pool_offset + string_loc[name], len(name))
         for file in self.files:
             name = file.relpath.encode('utf8')
-            format.write_metadata(stream, file_data_offset + file.offset, file.size, string_pool_offset + string_loc[name], len(name))
+            format.write_metadata(stream, file_data_offset_aligned + file.offset, file.size, string_pool_offset + string_loc[name], len(name))
 
         format.write_map_header(stream, hash_func_id, len(map_buckets))
 
