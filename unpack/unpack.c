@@ -84,11 +84,12 @@ int main(int argc, char ** argv)
 			size_t name_len;
 
 			mmarch_id id = mmarch_readdir_iterator_get(&context.base.context, &begin, &name, &name_len);
+			char type = mmarch_context_is_directory(&context.base.context, id)? 'd': 'f';
 
 			if (name)
-				printf("%d:\t%.*s\n", id, (int)name_len, name);
+				printf("%c:%-6d %.*s\n", type, id, (int)name_len, name);
 			else
-				printf("%d:\t--no-name--\n", id);
+				printf("%c:%6d --no-name--\n", type, id);
 			mmarch_readdir_iterator_next(&begin);
 		}
 	}

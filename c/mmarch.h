@@ -89,6 +89,9 @@ extern "C"
 
 	void mmarch_context_readdir(const struct mmarch_context * context, const char *path, size_t len, struct mmarch_readdir_iterator * begin, struct mmarch_readdir_iterator * end);
 
+	static inline int mmarch_context_is_directory(const struct mmarch_context * context, mmarch_id id)
+	{ return id >= 0 && id < context->_dir_count; }
+
 	void mmarch_context_get_object_metadata(const struct mmarch_context * context, mmarch_id id, const char **name, size_t *name_length, off_t * offset, off_t * size);
 	static inline void mmarch_context_get_object_name(const struct mmarch_context * context, mmarch_id id, const char **name, size_t *name_length)
 	{ mmarch_context_get_object_metadata(context, id, name, name_length, NULL, NULL); }
