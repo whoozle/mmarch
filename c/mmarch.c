@@ -77,19 +77,11 @@ void mmarch_context_init(struct mmarch_context * context)
 #define L32(VALUE) L(VALUE, bswap_32)
 #define L64(VALUE) L(VALUE, bswap_64)
 
-mmarch_error mmarch_context_load(struct mmarch_context * context, const uint8_t * buf)
+
+static mmarch_error mmarch_context_load_impl(struct mmarch_context * context, const uint8_t * buf)
 {
 	struct mmarch_file_header *header = (struct mmarch_file_header *)buf;
 
-	context->native = 1;
-	if (L32(header->magic) != 0x4D415243)
-	{
-		context->native = 0;
-		if (L32(header->magic) != 0x4D415243)
-		{
-			return EMMARCH_INVALID_HEADER_MAGIC;
-		}
-	}
 	int version = L32(header->version);
 	if (!COMPATIBLE(version))
 		return EMMARCH_INCOMPATIBLE_VERSION;
@@ -138,8 +130,24 @@ mmarch_error mmarch_context_load(struct mmarch_context * context, const uint8_t 
 	if (!context->hash_func)
 		return EMMARCH_HASH_FUNCTION_UNSUPPORTED;
 
-
 	return EMMARCH_OK;
+}
+
+
+mmarch_error mmarch_context_load(struct mmarch_context * context, const uint8_t * buf)
+{
+	struct mmarch_file_header *header = (struct mmarch_file_header *)buf;
+
+	context->native = 1;
+	if (L32(header->magic) != 0x4D415243)
+	{
+		context->native = 0;
+		if (L32(header->magic) != 0x4D415243)
+		{
+			return EMMARCH_INVALID_HEADER_MAGIC;
+		}
+	}
+	return mmarch_context_load_impl(context, buf);
 }
 
 void mmarch_context_deinit(struct mmarch_context * context)
