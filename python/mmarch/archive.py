@@ -31,8 +31,9 @@ class File(object):
         return "File(%s, size: %d%s)" %(self.relpath, self.size, ", %d" %self.index if self.index else "")
 
 class Directory (object):
-    __slots__ = ('name', 'files', 'dirs', 'index')
-    def __init__(self, name):
+    __slots__ = ('relpath', 'name', 'files', 'dirs', 'index')
+    def __init__(self, relpath, name):
+        self.relpath = relpath
         self.name = name
         self.files = []
         self.dirs = []
@@ -58,11 +59,13 @@ class Archive (object):
         self.format = format.Format(options)
         self._total = 0
 
-    def get_dir(self, rel_dirpath):
+    def get_dir(self, rel_dirpath, name = None):
         if rel_dirpath in self.dirs:
             dir = self.dirs[rel_dirpath]
         else:
-            dir = Directory(rel_dirpath)
+            if name is None:
+                raise Exception("no local name provided to get_dir")
+            dir = Directory(rel_dirpath, name)
             self.dirs[rel_dirpath] = dir
             self._total += 1
         return dir
@@ -70,12 +73,20 @@ class Archive (object):
     def add_dir(self, src_dir):
         logger.info("processing directory %s", src_dir)
         for dirpath, dirnames, filenames in os.walk(src_dir, followlinks = self.options.follow_links):
+            dirnames.sort()
+            filenames.sort()
+
             rel_dirpath = os.path.relpath(dirpath, src_dir)
             if rel_dirpath == '.':
                 rel_dirpath = ''
 
             try:
-                dir = self.get_dir(rel_dirpath)
+                if not rel_dirpath:
+                    name = rel_dirpath
+                else:
+                    name = None
+                dir = self.get_dir(rel_dirpath, name)
+                del name
             except Exception as ex:
                 logger.error("adding directory failed: %s", ex)
                 continue
@@ -83,8 +94,8 @@ class Archive (object):
             for dirname in dirnames:
                 rel_path = os.path.normpath(os.path.join(rel_dirpath, dirname))
                 abs_path = os.path.normpath(os.path.join(dirpath, dirname))
-                logger.debug('directory: %s, local name: %s', abs_path, rel_path)
-                dir.add(self.get_dir(rel_path))
+                logger.debug('directory: %s, local path: %s, local name: %s', abs_path, rel_path, dirname)
+                dir.add(self.get_dir(rel_path, dirname))
 
             for filename in filenames:
                 rel_path = os.path.normpath(os.path.join(rel_dirpath, filename))
@@ -106,6 +117,8 @@ class Archive (object):
     def _all(self):
         for dir in self.dirs.keys():
             yield dir
+        for dir in self.dirs.values():
+            yield dir.name
         for file in self.files:
             yield file.relpath
         for file in self.files:
