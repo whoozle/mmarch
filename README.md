@@ -6,6 +6,7 @@
 * Effective in-memory access, O(1) full-path file access, O(N) readdir (file lists are immediately available)
 * Memory mapped - Rely on OS caching instead of caching in userspace.
 * No dynamic memory allocation
+* All function compiled in native and foreign endianess mode, speeding up native access
 
 ## Structure
 
