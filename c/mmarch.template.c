@@ -1,4 +1,4 @@
-static mmarch_error mmarch_context_load_impl(struct mmarch_context * context, const uint8_t * buf)
+static WRAP(mmarch_error mmarch_context_load_impl)(struct mmarch_context * context, const uint8_t * buf)
 {
 	struct mmarch_file_header *header = (struct mmarch_file_header *)buf;
 
@@ -53,7 +53,7 @@ static mmarch_error mmarch_context_load_impl(struct mmarch_context * context, co
 	return EMMARCH_OK;
 }
 
-mmarch_id mmarch_readdir_iterator_get(const struct mmarch_context * context, const struct mmarch_readdir_iterator * iter, const char ** name_ptr, size_t * name_length_ptr)
+mmarch_id WRAP(mmarch_readdir_iterator_get)(const struct mmarch_context * context, const struct mmarch_readdir_iterator * iter, const char ** name_ptr, size_t * name_length_ptr)
 {
 	const struct mmarch_file_readdir_table_entry * entry = (const struct mmarch_file_readdir_table_entry *)iter->_ptr;
 	mmarch_id id = L32(entry->object_id);
@@ -75,7 +75,7 @@ mmarch_id mmarch_readdir_iterator_get(const struct mmarch_context * context, con
 	return id;
 }
 
-void mmarch_context_readdir(const struct mmarch_context * context, const char *path, size_t len, struct mmarch_readdir_iterator * begin, struct mmarch_readdir_iterator * end)
+void WRAP(mmarch_context_readdir)(const struct mmarch_context * context, const char *path, size_t len, struct mmarch_readdir_iterator * begin, struct mmarch_readdir_iterator * end)
 {
 	mmarch_id id = mmarch_context_find(context, path, len);
 	if (id < 0)
@@ -98,7 +98,7 @@ error:
 	begin->_ptr = end->_ptr = NULL;
 }
 
-mmarch_id mmarch_context_find(const struct mmarch_context * context, const char *name, size_t len)
+mmarch_id WRAP(mmarch_context_find)(const struct mmarch_context * context, const char *name, size_t len)
 {
 	uint32_t index = context->hash_func(name, len) % context->_bucket_count;
 
@@ -119,7 +119,7 @@ mmarch_id mmarch_context_find(const struct mmarch_context * context, const char 
 	return -1;
 }
 
-void mmarch_context_get_object_metadata(const struct mmarch_context * context, mmarch_id id, const char **name, size_t *name_length, off_t *offset, off_t *size)
+void WRAP(mmarch_context_get_object_metadata)(const struct mmarch_context * context, mmarch_id id, const char **name, size_t *name_length, off_t *offset, off_t *size)
 {
 	const struct mmarch_file_object_table_entry * entry = context->_object_table->entries + id;
 	if  ((const uint8_t *)entry >= context->header + context->header_size)

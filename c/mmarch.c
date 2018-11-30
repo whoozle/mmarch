@@ -122,11 +122,26 @@ mmarch_error mmarch_context_unmap_object(struct mmarch_context * context, struct
 		return EMMARCH_OK;
 }
 
+#define L32(VALUE) (VALUE)
+#define L64(VALUE) (VALUE)
+#define WRAP(NAME) NAME##_native
+
+#include "mmarch.template.c"
+
+#undef L32
+#undef L64
+#undef WRAP
+
 #define L(VALUE, SWAP) ((context->native)? (VALUE): SWAP (VALUE))
 #define L32(VALUE) L(VALUE, bswap_32)
 #define L64(VALUE) L(VALUE, bswap_64)
+#define WRAP(NAME) NAME##_foreign
 
 #include "mmarch.template.c"
+
+#undef WRAP
+
+#include "mmarch.wrapper.c"
 
 mmarch_error mmarch_context_load(struct mmarch_context * context, const uint8_t * buf)
 {
@@ -143,3 +158,6 @@ mmarch_error mmarch_context_load(struct mmarch_context * context, const uint8_t 
 	}
 	return mmarch_context_load_impl(context, buf);
 }
+
+#undef L32
+#undef L64
