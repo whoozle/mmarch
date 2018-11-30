@@ -65,12 +65,6 @@ struct PACKED(4) mmarch_file_readdir_table_entry
 	uint32_t name_length;
 };
 
-struct PACKED(4) mmarch_file_readdir_table
-{
-	uint32_t record_count;
-	uint32_t list_offset[];
-};
-
 #ifdef __cplusplus
 }
 #endif

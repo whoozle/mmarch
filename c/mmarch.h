@@ -61,7 +61,7 @@ extern "C"
 
 		struct mmarch_file_object_table *		_object_table;
 		struct mmarch_file_filename_table *		_filename_table;
-		struct mmarch_file_readdir_table *		_readdir_table;
+		uint32_t *								_readdir_table;
 	};
 
 	/*

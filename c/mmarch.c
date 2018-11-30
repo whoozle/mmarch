@@ -116,7 +116,7 @@ mmarch_error mmarch_context_load(struct mmarch_context * context, const uint8_t 
 	context->header = mapped_header;
 	struct mmarch_file_object_table *object_table = context->_object_table = (struct mmarch_file_object_table *)(context->header + object_table_offset);
 	context->_filename_table = (struct mmarch_file_filename_table *)(context->header + filename_table_offset);
-	context->_readdir_table = (struct mmarch_file_readdir_table *)(context->header + readdir_table_offset);
+	context->_readdir_table = (uint32_t *)(context->header + readdir_table_offset);
 
 	//fixme: more validation here
 	uint32_t dir_count = L32(object_table->dir_count);
@@ -176,11 +176,11 @@ void mmarch_context_readdir(const struct mmarch_context * context, const char *p
 	if (id >= context->_dir_count)
 		goto error;
 
-	if ((const uint8_t *)(context->_readdir_table->list_offset + id + 1) >= context->header + context->header_size)
+	if ((const uint8_t *)(context->_readdir_table + id + 1) >= context->header + context->header_size)
 		goto error;
 
-	uint32_t begin_off = L32(context->_readdir_table->list_offset[id]);
-	uint32_t end_off = L32(context->_readdir_table->list_offset[id + 1]);
+	uint32_t begin_off = L32(context->_readdir_table[id]);
+	uint32_t end_off = L32(context->_readdir_table[id + 1]);
 
 	begin->_ptr = context->header + begin_off;
 	end->_ptr = context->header + end_off;
