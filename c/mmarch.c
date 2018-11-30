@@ -263,7 +263,7 @@ error:
 mmarch_error mmarch_context_map_object(struct mmarch_context * context, struct mmarch_mapping * mapping, mmarch_id id)
 {
 	off_t offset, size;
-	mmarch_context_get_object_metadata(context, id, NULL, NULL, &offset, &size);
+	mmarch_context_get_object_placement(context, id, &offset, &size);
 	if (size != 0)
 	{
 		void *ptr;

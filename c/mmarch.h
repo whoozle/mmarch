@@ -93,8 +93,12 @@ extern "C"
 	{ return id >= 0 && id < context->_dir_count; }
 
 	void mmarch_context_get_object_metadata(const struct mmarch_context * context, mmarch_id id, const char **name, size_t *name_length, off_t * offset, off_t * size);
+
 	static inline void mmarch_context_get_object_name(const struct mmarch_context * context, mmarch_id id, const char **name, size_t *name_length)
 	{ mmarch_context_get_object_metadata(context, id, name, name_length, NULL, NULL); }
+
+	static inline void mmarch_context_get_object_placement(const struct mmarch_context * context, mmarch_id id, off_t *offset, off_t *size)
+	{ mmarch_context_get_object_metadata(context, id, NULL, NULL, offset, size); }
 
 	struct mmarch_mapping
 	{
