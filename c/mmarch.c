@@ -10,6 +10,7 @@
 size_t mmarch_get_header_size()
 {
 	STATIC_ASSERT(sizeof(struct mmarch_file_header) == MMARCH_HEADER_SIZE);
+	STATIC_ASSERT(sizeof(struct mmarch_file_readdir_table_entry) == MMARCH_READDIR_ENTRY_SIZE);
 	return sizeof(struct mmarch_file_header);
 }
 

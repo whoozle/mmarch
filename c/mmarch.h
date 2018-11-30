@@ -6,6 +6,7 @@
 #include <sys/types.h>
 
 #define MMARCH_HEADER_SIZE (36)
+#define MMARCH_READDIR_ENTRY_SIZE (12)
 
 #ifdef __cplusplus
 extern "C"
@@ -73,7 +74,7 @@ extern "C"
 	static inline int mmarch_readdir_iterator_equals(const struct mmarch_readdir_iterator * a, const struct mmarch_readdir_iterator * b)
 	{ return a->_ptr == b->_ptr; }
 	static inline void mmarch_readdir_iterator_next(struct mmarch_readdir_iterator * iter)
-	{ iter->_ptr += 12; }
+	{ iter->_ptr += MMARCH_READDIR_ENTRY_SIZE; }
 
 	mmarch_id mmarch_readdir_iterator_get(const struct mmarch_context * context, const struct mmarch_readdir_iterator * iter, const char ** name, size_t * name_length);
 
