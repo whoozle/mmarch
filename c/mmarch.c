@@ -43,6 +43,8 @@ const char * mmarch_get_error(mmarch_error error)
 {
 	switch(error)
 	{
+		case EMMARCH_OK:
+			return "success";
 		case EMMARCH_READ_FAILED:
 			return "read failed";
 		case EMMARCH_INVALID_HEADER_MAGIC:
