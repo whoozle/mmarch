@@ -105,7 +105,8 @@ int main(int argc, char ** argv)
 			if (r)
 				mmarch_fail(r);
 
-			int fd = open(extract, O_WRONLY | O_CREAT, 0600);
+			const char * out = strrchr(extract, '/');
+			int fd = open(out? out + 1: extract, O_WRONLY | O_CREAT, 0600);
 			if (fd == -1)
 			{
 				perror("open");
@@ -133,6 +134,7 @@ int main(int argc, char ** argv)
 			}
 
 			close(fd);
+			mmarch_context_unmap_object(&context.base.context, &mapping);
 		}
 	}
 	mmarch_context_posix_deinit(&context);
