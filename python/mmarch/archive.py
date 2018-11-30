@@ -13,17 +13,6 @@ def pad(size, alignment):
     n = align(size, alignment) - size
     return bytearray([0]) * n
 
-class Directory (object):
-    def __init__(self, name):
-        self.name = name
-        self.files = []
-
-    def add(self, file):
-        self.files.append(file)
-
-    def __repr__(self):
-        return "%s" %self.files
-
 class File(object):
     __slots__ = ('abspath', 'relpath', 'name', 'index', 'offset', 'stat')
     def __init__(self, abspath, relpath, name, offset):
@@ -41,6 +30,23 @@ class File(object):
     def __repr__(self):
         return "File(%s, size: %d%s)" %(self.relpath, self.size, ", %d" %self.index if self.index else "")
 
+class Directory (object):
+    __slots__ = ('name', 'files', 'dirs', 'index')
+    def __init__(self, name):
+        self.name = name
+        self.files = []
+        self.dirs = []
+        self.index = None
+
+    def add(self, entry):
+        if isinstance(entry, Directory):
+            self.dirs.append(entry)
+        else:
+            self.files.append(entry)
+
+    def __repr__(self):
+        return "%s" %self.files
+
 class Archive (object):
     def __init__(self, options):
         self.options = options
@@ -52,6 +58,15 @@ class Archive (object):
         self.format = format.Format(options)
         self._total = 0
 
+    def get_dir(self, rel_dirpath):
+        if rel_dirpath in self.dirs:
+            dir = self.dirs[rel_dirpath]
+        else:
+            dir = Directory(rel_dirpath)
+            self.dirs[rel_dirpath] = dir
+            self._total += 1
+        return dir
+
     def add_dir(self, src_dir):
         logger.info("processing directory %s", src_dir)
         for dirpath, dirnames, filenames in os.walk(src_dir, followlinks = self.options.follow_links):
@@ -60,14 +75,16 @@ class Archive (object):
                 rel_dirpath = ''
 
             try:
-                if rel_dirpath in self.dirs:
-                    raise Exception("duplicate path %s" %rel_dirpath)
-                dir = Directory(dirpath)
-                self.dirs[rel_dirpath] = dir
-                self._total += 1
+                dir = self.get_dir(rel_dirpath)
             except Exception as ex:
                 logger.error("adding directory failed: %s", ex)
                 continue
+
+            for dirname in dirnames:
+                rel_path = os.path.normpath(os.path.join(rel_dirpath, dirname))
+                abs_path = os.path.normpath(os.path.join(dirpath, dirname))
+                logger.debug('directory: %s, local name: %s', abs_path, rel_path)
+                dir.add(self.get_dir(rel_path))
 
             for filename in filenames:
                 rel_path = os.path.normpath(os.path.join(rel_dirpath, filename))
@@ -100,13 +117,14 @@ class Archive (object):
         string_pool, string_loc = create_pool(filenames)
 
         index = 0
-        for dir in self.dirs.keys():
+        for dir, dirobj in self.dirs.items():
+            dirobj.index = index
             name = dir.encode('utf8')
             self.global_names.add(name, index)
             index += 1
         for file in self.files:
-            name = file.relpath.encode('utf8')
             file.index = index
+            name = file.relpath.encode('utf8')
             self.global_names.add(name, index)
             index += 1
 
@@ -164,6 +182,9 @@ class Archive (object):
         def write_readdir_entry(entry):
             dirname, dir = entry
             r = bytearray()
+            # for dir in dir.dirs:
+            #     name = dir.name.encode('utf-8')
+            #     r += format.get_readdir_entry(dir.index, string_pool_offset + string_loc[name], len(name))
             for file in dir.files:
                 name = file.name.encode('utf-8')
                 r += format.get_readdir_entry(file.index + dirs_count, string_pool_offset + string_loc[name], len(name))
