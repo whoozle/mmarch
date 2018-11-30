@@ -93,7 +93,9 @@ int main(int argc, char ** argv)
 	}
 	if (extract)
 	{
-		fprintf(stderr, "extract %s\n", extract);
+		fprintf(stderr, "extracting %s...\n", extract);
+		mmarch_id id = mmarch_context_find(&context.base.context, extract, strlen(extract));
+		fprintf(stderr, "object id = %d\n", id);
 	}
 	mmarch_context_posix_deinit(&context);
 	exit(0);
