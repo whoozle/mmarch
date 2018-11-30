@@ -56,6 +56,7 @@ extern "C"
 
 		//private, use at your own risk
 		uint32_t		_dir_count;
+		uint32_t		_object_count;
 		uint32_t		_bucket_count;
 
 		struct mmarch_file_object_table *		_object_table;

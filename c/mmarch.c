@@ -119,12 +119,16 @@ mmarch_error mmarch_context_load(struct mmarch_context * context, const uint8_t 
 	context->_readdir_table = (struct mmarch_file_readdir_table *)(context->header + readdir_table_offset);
 
 	//fixme: more validation here
-	if (object_table->dir_count > object_table->total_count ||
-		(object_table_offset + 12 + object_table->total_count * object_table->field_count) > header_size)
+	uint32_t dir_count = L32(object_table->dir_count);
+	uint32_t object_count = L32(object_table->total_count);
+
+	if (dir_count > object_count ||
+		(object_table_offset + 12 + object_count * L32(object_table->field_count)) > header_size)
 	{
 		return EMMARCH_INVALID_OFFSET_IN_HEADER;
 	}
-	context->_dir_count = L32(object_table->dir_count);
+	context->_dir_count = dir_count;
+	context->_object_count = object_count;
 
 	context->hash_func = mmarch_get_hash_func(L32(context->_filename_table->hash_func_id));
 	if (!context->hash_func)
