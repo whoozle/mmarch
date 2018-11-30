@@ -148,7 +148,7 @@ class Archive (object):
         logger.debug("map data offset = %08x (%+d) 0x%08x", map_offset, map_size, map_offset + map_size)
 
         readdir_offset = map_offset + map_size
-        readdir_total = sum(map(lambda x: len(x.files), self.dirs.values()))
+        readdir_total = sum(map(lambda x: len(x.files) + len(x.dirs), self.dirs.values()))
         readdir_size = readdir_total * format.readdir_entry_size + format.table_entry_size * (dirs_count + 1)
         logger.debug("readdir data offset = 0x%08x (%+d) 0x%08x", readdir_offset, readdir_size, readdir_offset + readdir_size)
 
@@ -182,9 +182,9 @@ class Archive (object):
         def write_readdir_entry(entry):
             dirname, dir = entry
             r = bytearray()
-            # for dir in dir.dirs:
-            #     name = dir.name.encode('utf-8')
-            #     r += format.get_readdir_entry(dir.index, string_pool_offset + string_loc[name], len(name))
+            for subdir in dir.dirs:
+                name = subdir.name.encode('utf-8')
+                r += format.get_readdir_entry(dir.index, string_pool_offset + string_loc[name], len(name))
             for file in dir.files:
                 name = file.name.encode('utf-8')
                 r += format.get_readdir_entry(file.index, string_pool_offset + string_loc[name], len(name))
