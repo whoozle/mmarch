@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include "mmarch_posix.h"
 
 int main(int argc, char ** argv)
@@ -98,10 +99,39 @@ int main(int argc, char ** argv)
 		fprintf(stderr, "object id = %d\n", id);
 		if (id >= 0)
 		{
-			struct mmarch_mapping data;
-			mmarch_error r = mmarch_context_map_object(&context.base.context, &data, id);
+			struct mmarch_mapping mapping;
+			mmarch_error r = mmarch_context_map_object(&context.base.context, &mapping, id);
 			if (r)
 				mmarch_fail(r);
+
+			int fd = open(extract, O_WRONLY | O_CREAT, 0600);
+			if (fd == -1)
+			{
+				perror("open");
+				exit(1);
+			}
+
+			const uint8_t * src = (const uint8_t *)mapping.data;
+			const uint8_t * end = (const uint8_t *)mapping.data + mapping.size;
+
+			static const size_t write_size = 1024 * 1024;
+
+			while(src < end)
+			{
+				size_t n = end - src;
+				if (n > write_size)
+					n = write_size;
+				ssize_t r = write(fd, src, n);
+				src += r;
+				if (r != n)
+				{
+					if (r < 0)
+						perror("write");
+					break;
+				}
+			}
+
+			close(fd);
 		}
 	}
 	mmarch_context_posix_deinit(&context);
