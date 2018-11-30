@@ -36,7 +36,6 @@ extern "C"
 
 	struct mmarch_file_object_table;
 	struct mmarch_file_filename_table;
-	struct mmarch_file_readdir_table;
 
 	struct mmarch_context
 	{
